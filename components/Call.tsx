@@ -1,91 +1,70 @@
 import { useState, useRef } from "react";
 import { Peer } from "peerjs";
-import { io } from "socket.io-client";
 import { Box, Text } from "@chakra-ui/react";
+import { io } from "socket.io-client";
 import { useMount } from "react-use";
-import { subscribeWithSelector } from "zustand/middleware";
-import create from "zustand";
-
-interface IStore {
-  party: Record<string, boolean>;
-}
-const useStore = create(
-  subscribeWithSelector<IStore>(() => ({
-    party: {},
-  }))
-);
-
 let peer: Peer = null as any;
 let myStream: MediaStream = null as any;
-// const videoListRef: any = {};
 
 const Call = () => {
   const [myId, setMyId] = useState<string>();
   const boxRef = useRef<HTMLDivElement>(null);
 
   useMount(() => {
-    const subs = useStore.subscribe(
-      (state) => state.party,
-      (party) => {
-        const keys = Object.keys(party);
-        for (let i = 0; i < keys.length; i++) {
-          const partyId = keys[i];
-          if (party[partyId]) return;
-
-          const conn = peer.call(partyId, myStream);
-          conn.on("stream", (peerStream) => {
-            // if (videoListRef[conn.peer]) return;
-            if (!document.getElementById(conn.peer)) {
-              const video = document.createElement("video");
-              video.id = conn.peer;
-              video.autoplay = true;
-              video.srcObject = peerStream;
-              boxRef.current!.appendChild(video);
-            }
-            // videoListRef[conn.peer] = true;
-          });
-
-          useStore.setState((prev) => ({
-            party: {
-              ...prev.party,
-              [partyId]: true,
-            },
-          }));
-        }
-      }
-    );
-
     const init = async () => {
       await fetch("/api/socket");
-      const socket = io({ autoConnect: true });
+      const socket = io({ autoConnect: true, transports: ["websocket"] });
 
       myStream = await navigator.mediaDevices.getUserMedia({
         video: true,
         audio: true,
       });
 
-      peer = new Peer();
+      peer = new Peer(socket.id);
       peer.on("open", () => {
         setMyId(peer.id);
 
         socket.emit("join-room", peer.id);
-        socket.on("join-room", (message) => {
-          socket.emit("join-room", peer.id);
-          if (message === peer.id) return;
-          if (useStore.getState().party[message] !== undefined) return;
-          useStore.setState((prev) => ({
-            party: {
-              ...prev.party,
-              [message]: false,
-            },
-          }));
+
+        socket.on("member-leave", (leaveId: string) => {
+          const leaveVideo = document.getElementById(leaveId);
+          if (leaveVideo) leaveVideo.remove();
         });
+
+        socket.on("members", (members: string[]) => {
+          members.forEach((member) => {
+            if (member !== peer.id) {
+              const call = peer.call(member, myStream);
+              call.on("stream", (peerStream) => {
+                if (!document.getElementById(call.peer)) {
+                  const video = document.createElement("video");
+                  video.id = call.peer;
+                  video.autoplay = true;
+                  video.srcObject = peerStream;
+                  boxRef.current!.appendChild(video);
+                }
+              });
+            }
+          });
+        });
+
+        const myVid = document.createElement("video");
+        myVid.id = peer.id;
+        myVid.style.position = "fixed";
+        myVid.style.right = "0";
+        myVid.style.bottom = "0";
+        myVid.style.zIndex = "99";
+        myVid.autoplay = true;
+        myVid.srcObject = myStream;
+        myVid.volume = 0;
+        myVid.style.width = "200px";
+        myVid.style.height = "150px";
+        document.body.appendChild(myVid);
 
         peer.on("call", (call) => {
           call.answer(myStream);
 
           call.on("stream", (peerStream) => {
-            // if (videoListRef[call.peer]) return;
             if (!document.getElementById(call.peer)) {
               const video = document.createElement("video");
               video.id = call.peer;
@@ -93,14 +72,12 @@ const Call = () => {
               video.srcObject = peerStream;
               boxRef.current!.appendChild(video);
             }
-            // videoListRef[call.peer] = true;
           });
         });
       });
     };
 
     init();
-    return subs;
   });
 
   return (

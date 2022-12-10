@@ -17,7 +17,7 @@ export default function Home() {
 
   const socketInitializer = async () => {
     await fetch("/api/socket");
-    socket = io();
+    socket = io({ autoConnect: true, transports: ["websocket"] });
     socket.on("connect", () => {
       console.log("connected", socket.id);
       setConnected(true);
