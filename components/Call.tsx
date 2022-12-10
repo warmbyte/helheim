@@ -17,7 +17,7 @@ const useStore = create(
 
 let peer: Peer = null as any;
 let myStream: MediaStream = null as any;
-const videoListRef: any = {};
+// const videoListRef: any = {};
 
 const Call = () => {
   const [myId, setMyId] = useState<string>();
@@ -34,13 +34,15 @@ const Call = () => {
 
           const conn = peer.call(partyId, myStream);
           conn.on("stream", (peerStream) => {
-            if (videoListRef[conn.peer]) return;
-            const video = document.createElement("video");
-            video.id = conn.peer;
-            video.autoplay = true;
-            video.srcObject = peerStream;
-            boxRef.current!.appendChild(video);
-            videoListRef[conn.peer] = true;
+            // if (videoListRef[conn.peer]) return;
+            if (!document.getElementById(conn.peer)) {
+              const video = document.createElement("video");
+              video.id = conn.peer;
+              video.autoplay = true;
+              video.srcObject = peerStream;
+              boxRef.current!.appendChild(video);
+            }
+            // videoListRef[conn.peer] = true;
           });
 
           useStore.setState((prev) => ({
@@ -80,16 +82,18 @@ const Call = () => {
         });
 
         peer.on("call", (call) => {
-          if (!videoListRef[call.peer]) call.answer(myStream);
+          call.answer(myStream);
 
           call.on("stream", (peerStream) => {
-            if (videoListRef[call.peer]) return;
-            const video = document.createElement("video");
-            video.id = call.peer;
-            video.autoplay = true;
-            video.srcObject = peerStream;
-            boxRef.current!.appendChild(video);
-            videoListRef[call.peer] = true;
+            // if (videoListRef[call.peer]) return;
+            if (!document.getElementById(call.peer)) {
+              const video = document.createElement("video");
+              video.id = call.peer;
+              video.autoplay = true;
+              video.srcObject = peerStream;
+              boxRef.current!.appendChild(video);
+            }
+            // videoListRef[call.peer] = true;
           });
         });
       });
