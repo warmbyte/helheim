@@ -1,13 +1,13 @@
 import { useState, useRef } from "react";
 import { Peer } from "peerjs";
-import { Box, Text } from "@chakra-ui/react";
+import { Box, Stack } from "@chakra-ui/react";
 import { io } from "socket.io-client";
 import { useMount } from "react-use";
 let peer: Peer = null as any;
 let myStream: MediaStream = null as any;
 
 const Call = () => {
-  const [myId, setMyId] = useState<string>();
+  const [_, setMyId] = useState<string>();
   const boxRef = useRef<HTMLDivElement>(null);
 
   useMount(() => {
@@ -32,6 +32,7 @@ const Call = () => {
         });
 
         socket.on("members", (members: string[]) => {
+          members = members;
           members.forEach((member) => {
             if (member !== peer.id) {
               const call = peer.call(member, myStream);
@@ -82,8 +83,20 @@ const Call = () => {
 
   return (
     <Box>
-      <Text>Your ID: {myId}</Text>
-      <Box ref={boxRef} />
+      <Box display="flex" flexWrap="wrap" width="100vw" ref={boxRef} />
+      <Stack
+        w="full"
+        flexDirection="row"
+        py="2"
+        borderColor="gray.200"
+        borderTopWidth="2px"
+        borderStyle="solid"
+        position="fixed"
+        align="center"
+        justify="center"
+        bottom="0"
+        left="0"
+      ></Stack>
     </Box>
   );
 };
