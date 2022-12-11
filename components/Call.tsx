@@ -18,47 +18,33 @@ let peerConnection: Record<string, DataConnection> = {};
 
 interface IStore {
   streamList: Record<string, VideoStream>;
-  isMuted: boolean;
-  isCamOff: boolean;
+  isSoundEnabled: boolean;
+  isCamEnabled: boolean;
 }
 
 const useStore = create<IStore>(() => ({
   streamList: {},
-  isMuted: false,
-  isCamOff: false,
+  isSoundEnabled: true,
+  isCamEnabled: true,
 }));
-const { setState, getState } = useStore;
+const { setState } = useStore;
 
 const Call = () => {
-  const { streamList, isMuted, isCamOff } = useStore();
+  const { streamList, isSoundEnabled, isCamEnabled } = useStore();
   const boxRef = useRef<HTMLDivElement>(null);
 
   const handleCam = () => {
-    const isCamOff = !getState().isCamOff;
-    if (isCamOff) {
-      myStream.getVideoTracks().forEach((track) => {
-        track.enabled = false;
-      });
-    } else {
-      myStream.getVideoTracks().forEach((track) => {
-        track.enabled = true;
-      });
-    }
-    setState({ isCamOff });
+    myStream.getVideoTracks().forEach((track) => {
+      track.enabled = !isCamEnabled;
+    });
+    setState({ isCamEnabled: !isCamEnabled });
   };
 
   const handleMute = () => {
-    const isMuted = !getState().isMuted;
-    if (isMuted) {
-      myStream.getAudioTracks().forEach((track) => {
-        track.enabled = false;
-      });
-    } else {
-      myStream.getAudioTracks().forEach((track) => {
-        track.enabled = true;
-      });
-    }
-    setState({ isMuted });
+    myStream.getAudioTracks().forEach((track) => {
+      track.enabled = !isSoundEnabled;
+    });
+    setState({ isSoundEnabled: !isSoundEnabled });
   };
 
   const addStream = (id: string) => (stream: MediaStream) => {
@@ -164,11 +150,17 @@ const Call = () => {
         bottom="0"
         left="0"
       >
-        <Button colorScheme={isMuted ? "red" : undefined} onClick={handleMute}>
-          {isMuted ? "Unmute" : "Mute"}
+        <Button
+          colorScheme={isSoundEnabled ? undefined : "red"}
+          onClick={handleMute}
+        >
+          {isSoundEnabled ? "Mute" : "Unmute"}
         </Button>
-        <Button colorScheme={isCamOff ? "red" : undefined} onClick={handleCam}>
-          {isCamOff ? "Cam On" : "Cam Off"}
+        <Button
+          colorScheme={isCamEnabled ? undefined : "red"}
+          onClick={handleCam}
+        >
+          {isCamEnabled ? "Cam Off" : "Cam On"}
         </Button>
       </HStack>
     </Box>
