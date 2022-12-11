@@ -92,7 +92,10 @@ const Call = () => {
       <Box display="flex" flexWrap="wrap" width="100vw" ref={boxRef} />
       <Wrap w="full" spacing="0">
         {Object.keys(streamList).map((key) => (
-          <WrapItem w={{ sm: "100vw", md: "50vw", lg: "33.333vw" }} key={key}>
+          <WrapItem
+            w={{ base: "100vw", sm: "100vw", md: "50vw", lg: "33.333vw" }}
+            key={key}
+          >
             <AspectRatio w="full" ratio={16 / 9}>
               <Box as="video" autoPlay={true} playsInline={true} id={key} />
             </AspectRatio>
