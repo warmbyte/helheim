@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef } from "react";
 import { DataConnection, Peer } from "peerjs";
 import {
   Button,
@@ -15,7 +15,6 @@ import VideoStream from "../lib/VideoStream";
 let peer: Peer = null as any;
 let myStream: MediaStream = null as any;
 let peerConnection: Record<string, DataConnection> = {};
-let interval: NodeJS.Timer = null as any;
 
 interface IStore {
   streamList: Record<string, VideoStream>;
@@ -34,33 +33,32 @@ const Call = () => {
   const { streamList, isMuted, isCamOff } = useStore();
   const boxRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (interval !== null) clearInterval(interval);
-    interval = setInterval(() => {
-      try {
-        Object.values(peerConnection).forEach((conn) => {
-          if (isCamOff) {
-            conn.send({ type: "camOff", value: peer.id });
-          } else {
-            conn.send({ type: "camOn", value: peer.id });
-          }
-
-          if (isMuted) {
-            conn.send({ type: "mute", value: peer.id });
-          } else {
-            conn.send({ type: "unmute", value: peer.id });
-          }
-        });
-      } catch (error) {}
-    }, 200);
-  }, [isMuted, isCamOff, streamList]);
-
   const handleCam = () => {
-    setState((prev) => ({ isCamOff: !prev.isCamOff }));
+    const isCamOff = !getState().isCamOff;
+    if (isCamOff) {
+      myStream.getVideoTracks().forEach((track) => {
+        track.enabled = false;
+      });
+    } else {
+      myStream.getVideoTracks().forEach((track) => {
+        track.enabled = true;
+      });
+    }
+    setState({ isCamOff });
   };
 
   const handleMute = () => {
-    setState((prev) => ({ isMuted: !prev.isMuted }));
+    const isMuted = !getState().isMuted;
+    if (isMuted) {
+      myStream.getAudioTracks().forEach((track) => {
+        track.enabled = false;
+      });
+    } else {
+      myStream.getAudioTracks().forEach((track) => {
+        track.enabled = true;
+      });
+    }
+    setState({ isMuted });
   };
 
   const addStream = (id: string) => (stream: MediaStream) => {
@@ -81,23 +79,7 @@ const Call = () => {
     });
   };
 
-  const dataHandler = (data: any) => {
-    if (data.type === "camOn") {
-      getState().streamList[data.value].camOn();
-    }
-
-    if (data.type === "camOff") {
-      getState().streamList[data.value].camOff();
-    }
-
-    if (data.type === "mute") {
-      getState().streamList[data.value].mute();
-    }
-
-    if (data.type === "unmute") {
-      getState().streamList[data.value].unmute();
-    }
-  };
+  const dataHandler = (data: any) => {};
 
   useMount(() => {
     const init = async () => {
@@ -134,7 +116,7 @@ const Call = () => {
         myVid.id = peer.id;
         myVid.style.position = "fixed";
         myVid.style.right = "0";
-        myVid.style.bottom = "0";
+        myVid.style.bottom = "60px";
         myVid.style.zIndex = "99";
         myVid.autoplay = true;
         myVid.srcObject = myStream;
