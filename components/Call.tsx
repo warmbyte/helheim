@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { Peer } from "peerjs";
-import { Box, Stack } from "@chakra-ui/react";
+import { Box, Stack, Wrap, WrapItem, AspectRatio } from "@chakra-ui/react";
 import { io } from "socket.io-client";
 import { useMount } from "react-use";
 let peer: Peer = null as any;
@@ -8,6 +8,7 @@ let myStream: MediaStream = null as any;
 
 const Call = () => {
   const [_, setMyId] = useState<string>();
+  const [streamList, setStreamList] = useState<Record<string, MediaStream>>({});
   const boxRef = useRef<HTMLDivElement>(null);
 
   useMount(() => {
@@ -27,6 +28,11 @@ const Call = () => {
         socket.emit("join-room", peer.id);
 
         socket.on("member-leave", (leaveId: string) => {
+          setStreamList((prev) => {
+            let _prev = Object.assign({}, prev);
+            delete prev[leaveId];
+            return _prev;
+          });
           const leaveVideo = document.getElementById(leaveId);
           if (leaveVideo) leaveVideo.remove();
         });
@@ -37,13 +43,13 @@ const Call = () => {
             if (member !== peer.id) {
               const call = peer.call(member, myStream);
               call.on("stream", (peerStream) => {
-                if (!document.getElementById(call.peer)) {
-                  const video = document.createElement("video");
-                  video.id = call.peer;
-                  video.autoplay = true;
-                  video.srcObject = peerStream;
-                  boxRef.current!.appendChild(video);
-                }
+                setStreamList((prev) => ({ ...prev, [call.peer]: peerStream }));
+                setTimeout(() => {
+                  const vid = document.getElementById(
+                    call.peer
+                  ) as HTMLVideoElement;
+                  if (vid) vid.srcObject = peerStream;
+                }, 10);
               });
             }
           });
@@ -66,13 +72,13 @@ const Call = () => {
           call.answer(myStream);
 
           call.on("stream", (peerStream) => {
-            if (!document.getElementById(call.peer)) {
-              const video = document.createElement("video");
-              video.id = call.peer;
-              video.autoplay = true;
-              video.srcObject = peerStream;
-              boxRef.current!.appendChild(video);
-            }
+            setStreamList((prev) => ({ ...prev, [call.peer]: peerStream }));
+            setTimeout(() => {
+              const vid = document.getElementById(
+                call.peer
+              ) as HTMLVideoElement;
+              if (vid) vid.srcObject = peerStream;
+            }, 10);
           });
         });
       });
@@ -84,6 +90,15 @@ const Call = () => {
   return (
     <Box>
       <Box display="flex" flexWrap="wrap" width="100vw" ref={boxRef} />
+      <Wrap w="full" spacing="0">
+        {Object.keys(streamList).map((key) => (
+          <WrapItem w={{ sm: "100vw", md: "50vw", lg: "33.333vw" }} key={key}>
+            <AspectRatio w="full" ratio={16 / 9}>
+              <Box as="video" autoPlay={true} playsInline={true} id={key} />
+            </AspectRatio>
+          </WrapItem>
+        ))}
+      </Wrap>
       <Stack
         w="full"
         flexDirection="row"
