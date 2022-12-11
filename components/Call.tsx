@@ -33,7 +33,7 @@ const Call = () => {
             delete prev[leaveId];
             return _prev;
           });
-          const leaveVideo = document.getElementById(leaveId);
+          const leaveVideo = document.getElementById(`wrapper-${leaveId}`);
           if (leaveVideo) leaveVideo.remove();
         });
 
@@ -95,6 +95,7 @@ const Call = () => {
           <WrapItem
             w={{ base: "100vw", sm: "100vw", md: "50vw", lg: "33.333vw" }}
             key={key}
+            id={`wrapper-${key}`}
           >
             <AspectRatio w="full" ratio={16 / 9}>
               <Box as="video" autoPlay={true} playsInline={true} id={key} />
