@@ -12,6 +12,9 @@ const Component = (props: { stream: MediaStream }) => {
   return (
     <Box
       ref={videoRef as any}
+      position="absolute"
+      width="100%"
+      height="100%"
       as="video"
       autoPlay={true}
       playsInline={true}

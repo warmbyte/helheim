@@ -115,14 +115,16 @@ const Call = () => {
       await fetch("/api/socket");
       const socket = io({ autoConnect: true, transports: ["websocket"] });
 
-      myStream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: {
-          sampleSize: 24,
-          channelCount: 2,
-        },
-      });
-      myStream.addTrack(silence());
+      if (!myStream) {
+        myStream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: {
+            sampleSize: 24,
+            channelCount: 2,
+          },
+        });
+        myStream.addTrack(silence());
+      }
 
       peer = new Peer(socket.id);
       peer.on("connection", (conn) => {
@@ -181,7 +183,7 @@ const Call = () => {
             key={key}
             id={`wrapper-${key}`}
           >
-            <AspectRatio w="full" ratio={16 / 9}>
+            <AspectRatio position="relative" w="full" ratio={16 / 9}>
               {streamList[key].render()}
             </AspectRatio>
           </WrapItem>
