@@ -7,18 +7,19 @@ const Component = (props: { stream: MediaStream }) => {
 
   useMount(() => {
     videoRef.current!.srcObject = props.stream;
+    videoRef.current!.style.objectFit = "contain !important";
   });
 
   return (
     <Box
       ref={videoRef as any}
+      bg="gray.500"
       position="absolute"
       width="100%"
       height="100%"
       as="video"
       autoPlay={true}
       playsInline={true}
-      objectFit="contain"
       id={props.stream.id}
     />
   );
