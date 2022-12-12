@@ -1,17 +1,11 @@
-import { useRef } from "react";
+/* eslint-disable react-hooks/exhaustive-deps */
+import { useRef, useEffect } from "react";
 import { DataConnection, MediaConnection, Peer } from "peerjs";
-import {
-  Button,
-  Box,
-  Wrap,
-  WrapItem,
-  HStack,
-  AspectRatio,
-} from "@chakra-ui/react";
+import { Button, Box, Wrap, WrapItem, HStack } from "@chakra-ui/react";
 import { io } from "socket.io-client";
-import { useMount } from "react-use";
 import create from "zustand";
 import VideoStream from "../lib/VideoStream";
+let initiated = false;
 let peer: Peer = null as any;
 let myStream: MediaStream = null as any;
 let peerConnection: Record<string, DataConnection> = {};
@@ -68,10 +62,27 @@ const Call = () => {
     } catch (error) {}
   };
 
-  const handleCam = () => {
-    myStream.getVideoTracks().forEach((track) => {
-      track.enabled = !isCamEnabled;
-    });
+  const handleCam = async () => {
+    if (isCamEnabled) {
+      myStream.getVideoTracks().forEach((track) => {
+        track.enabled = false;
+        setTimeout(() => {
+          track.stop();
+        }, 100);
+      });
+    } else {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: false,
+      });
+      const [track] = stream.getVideoTracks();
+      myStream.removeTrack(myStream.getVideoTracks()[0]);
+      myStream.addTrack(track);
+      Object.values(callConnection).forEach((call) => {
+        const [, , sender] = call.peerConnection.getSenders();
+        sender.replaceTrack(track);
+      });
+    }
     setState({ isCamEnabled: !isCamEnabled });
   };
 
@@ -110,12 +121,15 @@ const Call = () => {
 
   const dataHandler = (data: any) => {};
 
-  useMount(() => {
+  useEffect(() => {
+    if (initiated) return;
+    initiated = true;
+    console.log("hello");
     const init = async () => {
       await fetch("/api/socket");
       const socket = io({ autoConnect: true, transports: ["websocket"] });
 
-      if (!myStream) {
+      if (myStream === null) {
         myStream = await navigator.mediaDevices.getUserMedia({
           video: true,
           audio: {
@@ -123,6 +137,7 @@ const Call = () => {
             channelCount: 2,
           },
         });
+        addStream("self")(myStream);
         myStream.addTrack(silence());
       }
 
@@ -149,19 +164,6 @@ const Call = () => {
           });
         });
 
-        const myVid = document.createElement("video");
-        myVid.id = peer.id;
-        myVid.style.position = "fixed";
-        myVid.style.right = "0";
-        myVid.style.bottom = "60px";
-        myVid.style.zIndex = "99";
-        myVid.autoplay = true;
-        myVid.srcObject = myStream;
-        myVid.volume = 0;
-        myVid.style.width = "200px";
-        myVid.style.height = "150px";
-        document.body.appendChild(myVid);
-
         peer.on("call", (call) => {
           callConnection[call.peer] = call;
           call.answer(myStream);
@@ -171,7 +173,7 @@ const Call = () => {
     };
 
     init();
-  });
+  }, []);
 
   return (
     <Box>
@@ -185,7 +187,7 @@ const Call = () => {
             key={key}
             id={`wrapper-${key}`}
           >
-            {streamList[key].render()}
+            {streamList[key].render(key === "self")}
           </WrapItem>
         ))}
       </Wrap>

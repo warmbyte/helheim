@@ -2,25 +2,30 @@ import { useRef } from "react";
 import { Box } from "@chakra-ui/react";
 import { useMount } from "react-use";
 
-const Component = (props: { stream: MediaStream }) => {
+export const VideoComponent = (props: {
+  stream: MediaStream;
+  isMuted?: boolean;
+}) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useMount(() => {
     videoRef.current!.srcObject = props.stream;
-    videoRef.current!.style.objectFit = "contain !important";
+    if (props.isMuted) {
+      videoRef.current!.volume = 0;
+    }
   });
 
   return (
     <Box
       ref={videoRef as any}
-      bg="gray.500"
+      bg="gray.800"
       position="absolute"
       width="100%"
       height="100%"
       as="video"
       autoPlay={true}
       playsInline={true}
-      id={props.stream.id}
+      id={props.stream?.id}
     />
   );
 };
@@ -59,8 +64,8 @@ class VideoStream {
     return this.stream;
   }
 
-  render() {
-    return <Component stream={this.stream} />;
+  render(isMuted?: boolean) {
+    return <VideoComponent isMuted={isMuted} stream={this.stream} />;
   }
 }
 
