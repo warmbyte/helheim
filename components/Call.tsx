@@ -62,6 +62,7 @@ const Call = () => {
       track.applyConstraints({});
       Object.values(callConnection).forEach((call) => {
         const [, sender] = call.peerConnection.getSenders();
+        myStream.getAudioTracks()[1] = track;
         sender.replaceTrack(track);
       });
     } catch (error) {}
