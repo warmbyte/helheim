@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { DataConnection, Peer } from "peerjs";
+import { DataConnection, MediaConnection, Peer } from "peerjs";
 import {
   Button,
   Box,
@@ -15,6 +15,7 @@ import VideoStream from "../lib/VideoStream";
 let peer: Peer = null as any;
 let myStream: MediaStream = null as any;
 let peerConnection: Record<string, DataConnection> = {};
+let callConnection: Record<string, MediaConnection> = {};
 
 interface IStore {
   streamList: Record<string, VideoStream>;
@@ -33,6 +34,33 @@ const Call = () => {
   const { streamList, isSoundEnabled, isCamEnabled } = useStore();
   const boxRef = useRef<HTMLDivElement>(null);
 
+  const silence = () => {
+    const ctx = new AudioContext();
+    const oscillator = ctx.createOscillator();
+    const stream = ctx.createMediaStreamDestination();
+    oscillator.connect(stream);
+    oscillator.start();
+    const audioTrack = stream.stream.getAudioTracks()[0];
+    audioTrack.enabled = false;
+    return audioTrack;
+  };
+
+  const handleShareAudio = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+        audio: {
+          sampleSize: 24,
+          channelCount: 2,
+        },
+      });
+      const [track] = stream.getAudioTracks();
+      Object.values(callConnection).forEach((call) => {
+        const [, sender] = call.peerConnection.getSenders();
+        sender.replaceTrack(track);
+      });
+    } catch (error) {}
+  };
+
   const handleCam = () => {
     myStream.getVideoTracks().forEach((track) => {
       track.enabled = !isCamEnabled;
@@ -41,9 +69,8 @@ const Call = () => {
   };
 
   const handleMute = () => {
-    myStream.getAudioTracks().forEach((track) => {
-      track.enabled = !isSoundEnabled;
-    });
+    const [track] = myStream.getAudioTracks();
+    track.enabled = !isSoundEnabled;
     setState({ isSoundEnabled: !isSoundEnabled });
   };
 
@@ -54,6 +81,15 @@ const Call = () => {
         [id]: new VideoStream(stream),
       },
     }));
+  };
+
+  const handleTrack = (id: string) => (e: RTCTrackEvent) => {
+    const video = document.getElementById(id) as HTMLVideoElement;
+    if (!video) {
+      addStream(id)(e.streams[0]);
+    } else {
+      video.srcObject = e.streams[0];
+    }
   };
 
   const removeStream = (id: string) => {
@@ -74,11 +110,16 @@ const Call = () => {
 
       myStream = await navigator.mediaDevices.getUserMedia({
         video: true,
-        audio: true,
+        audio: {
+          sampleSize: 24,
+          channelCount: 2,
+        },
       });
+      myStream.addTrack(silence());
 
       peer = new Peer(socket.id);
       peer.on("connection", (conn) => {
+        if (!conn) return;
         peerConnection[conn.peer] = conn;
         conn.on("data", dataHandler);
       });
@@ -91,9 +132,10 @@ const Call = () => {
               const call = peer.call(member, myStream);
               const conn = peer.connect(member);
               peerConnection[member] = conn;
+              callConnection[member] = call;
 
               conn.on("data", dataHandler);
-              call.on("stream", addStream(member));
+              call.peerConnection.ontrack = handleTrack(member);
             }
           });
         });
@@ -112,8 +154,9 @@ const Call = () => {
         document.body.appendChild(myVid);
 
         peer.on("call", (call) => {
+          callConnection[call.peer] = call;
           call.answer(myStream);
-          call.on("stream", addStream(call.peer));
+          call.peerConnection.ontrack = handleTrack(call.peer);
         });
       });
     };
@@ -162,6 +205,7 @@ const Call = () => {
         >
           {isCamEnabled ? "Cam Off" : "Cam On"}
         </Button>
+        <Button onClick={handleShareAudio}>Share Audio</Button>
       </HStack>
     </Box>
   );

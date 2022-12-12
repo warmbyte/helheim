@@ -15,6 +15,7 @@ const Component = (props: { stream: MediaStream }) => {
       as="video"
       autoPlay={true}
       playsInline={true}
+      objectFit="contain"
       id={props.stream.id}
     />
   );
