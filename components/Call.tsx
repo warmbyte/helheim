@@ -51,9 +51,15 @@ const Call = () => {
         audio: {
           sampleSize: 24,
           channelCount: 2,
+          sampleRate: 48000,
+          noiseSuppression: false,
+          echoCancellation: false,
+          autoGainControl: false,
+          suppressLocalAudioPlayback: false,
         },
       });
       const [track] = stream.getAudioTracks();
+      track.applyConstraints({});
       Object.values(callConnection).forEach((call) => {
         const [, sender] = call.peerConnection.getSenders();
         sender.replaceTrack(track);
