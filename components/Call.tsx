@@ -179,13 +179,13 @@ const Call = () => {
       <Wrap w="full" spacing="0">
         {Object.keys(streamList).map((key) => (
           <WrapItem
+            position="relative"
             w={{ base: "100vw", sm: "100vw", md: "50vw", lg: "33.333vw" }}
+            h="33.333vh"
             key={key}
             id={`wrapper-${key}`}
           >
-            <AspectRatio position="relative" w="full" ratio={16 / 9}>
-              {streamList[key].render()}
-            </AspectRatio>
+            {streamList[key].render()}
           </WrapItem>
         ))}
       </Wrap>
