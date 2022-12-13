@@ -1,6 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { Box, Grid, HStack, Button, GridItem } from "@chakra-ui/react";
-import { useMount } from "hooks";
+import { useMount, useCallLayout } from "hooks";
 import Stream from "components/Stream";
 import { MyStream } from "lib";
 
@@ -11,7 +11,7 @@ const CallNext = () => {
 
   useMount(() => {
     const init = async () => {
-      const _streamList = new Array(6).fill(null).map(() => {
+      const _streamList = new Array(2).fill(null).map(() => {
         return myStream.stream;
       });
       setStreamList(_streamList);
@@ -20,35 +20,7 @@ const CallNext = () => {
     init();
   });
 
-  const [columns, rows] = useMemo(() => {
-    let columns = "repeat(3, 1fr)";
-    let rows = "repeat(3, 1fr)";
-
-    switch (streamList.length) {
-      case 1: {
-        columns = rows = "1fr";
-        break;
-      }
-      case 2: {
-        columns = "1fr";
-        rows = "repeat(2, 1fr)";
-        break;
-      }
-      case 3: {
-        columns = "repeat(2, 1fr)";
-        rows = "repeat(2, 1fr)";
-        break;
-      }
-      case 5:
-      case 6: {
-        columns = "repeat(3, 1fr)";
-        rows = "repeat(2, 1fr)";
-        break;
-      }
-    }
-
-    return [columns, rows];
-  }, [streamList]);
+  const { columns, rows } = useCallLayout(streamList.length);
 
   return (
     <Box
