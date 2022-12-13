@@ -44,8 +44,8 @@ const Call = () => {
       const stream = await navigator.mediaDevices.getDisplayMedia({
         audio: {
           sampleSize: 24,
-          channelCount: 1,
           sampleRate: 48000,
+          channelCount: 2,
           noiseSuppression: false,
           echoCancellation: false,
           autoGainControl: false,

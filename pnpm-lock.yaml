@@ -5,6 +5,7 @@ specifiers:
   '@chakra-ui/react': ^2.4.3
   '@emotion/react': ^11.10.5
   '@emotion/styled': ^11.10.5
+  '@types/lodash': ^4.14.191
   '@types/node': 18.11.12
   '@types/react': 18.0.26
   '@types/react-dom': 18.0.9
@@ -12,6 +13,8 @@ specifiers:
   eslint: 8.29.0
   eslint-config-next: 13.0.6
   framer-motion: ^7.6.19
+  immer: ^9.0.16
+  lodash: ^4.17.21
   next: 13.0.6
   peerjs: ^1.4.7
   react: 18.2.0
@@ -33,6 +36,8 @@ dependencies:
   eslint: 8.29.0
   eslint-config-next: 13.0.6_ha6vam6werchizxrnqvarmz2zu
   framer-motion: 7.6.19_biqbaboplfbrettd7655fr4n2y
+  immer: 9.0.16
+  lodash: 4.17.21
   next: 13.0.6_672uxklweod7ene3nqtsh262ca
   peerjs: 1.4.7
   react: 18.2.0
@@ -42,10 +47,11 @@ dependencies:
   socket.io-client: 4.5.4
   typescript: 4.9.4
   uuid: 9.0.0
-  zustand: 4.1.5_react@18.2.0
+  zustand: 4.1.5_immer@9.0.16+react@18.2.0
 
 devDependencies:
   '@babel/core': 7.20.5
+  '@types/lodash': 4.14.191
   '@types/uuid': 9.0.0
 
 packages:
@@ -1748,7 +1754,6 @@ packages:
 
   /@types/lodash/4.14.191:
     resolution: {integrity: sha512-BdZ5BCCvho3EIXw6wUCXHe7rS53AIDPLE+JzwgT+OsJk53oBfbSmZZ7CX4VaRoN78N+TJpFi9QPlfIVNmJYWxQ==}
-    dev: false
 
   /@types/node/18.11.12:
     resolution: {integrity: sha512-FgD3NtTAKvyMmD44T07zz2fEf+OKwutgBCEVM8GcvMGVGaDktiLNTDvPwC/LUe3PinMW+X6CuLOF2Ui1mAlSXg==}
@@ -2974,6 +2979,10 @@ packages:
     engines: {node: '>= 4'}
     dev: false
 
+  /immer/9.0.16:
+    resolution: {integrity: sha512-qenGE7CstVm1NrHQbMh8YaSzTZTFNP3zPqr3YU0S0UY441j4bJTg4A2Hh5KAhwgaiU6ZZ1Ar6y/2f4TblnMReQ==}
+    dev: false
+
   /import-fresh/3.3.0:
     resolution: {integrity: sha512-veYYhQa+D1QBKznvhUHxb8faxlrwUnxseDAbAp457E0wLNio2bOSKnjYDhMj+YiAq61xrMGhQk9iXVk5FzgQMw==}
     engines: {node: '>=6'}
@@ -3231,6 +3240,10 @@ packages:
 
   /lodash.mergewith/4.6.2:
     resolution: {integrity: sha512-GK3g5RPZWTRSeLSpgP8Xhra+pnjBC56q9FZYe1d5RN3TJ35dbkGy3YqBSMbyCrlbi+CM9Z3Jk5yTL7RCsqboyQ==}
+    dev: false
+
+  /lodash/4.17.21:
+    resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==}
     dev: false
 
   /loose-envify/1.4.0:
@@ -4284,7 +4297,7 @@ packages:
     engines: {node: '>=10'}
     dev: false
 
-  /zustand/4.1.5_react@18.2.0:
+  /zustand/4.1.5_immer@9.0.16+react@18.2.0:
     resolution: {integrity: sha512-PsdRT8Bvq22Yyh1tvpgdHNE7OAeFKqJXUxtJvj1Ixw2B9O2YZ1M34ImQ+xyZah4wZrR4lENMoDUutKPpyXCQ/Q==}
     engines: {node: '>=12.7.0'}
     peerDependencies:
@@ -4296,6 +4309,7 @@ packages:
       react:
         optional: true
     dependencies:
+      immer: 9.0.16
       react: 18.2.0
       use-sync-external-store: 1.2.0_react@18.2.0
     dev: false
