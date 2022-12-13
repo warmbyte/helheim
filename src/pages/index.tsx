@@ -1,6 +1,6 @@
 import dynamic from "next/dynamic";
 import Head from "next/head";
-const Call = dynamic(() => import("../components/Call"), {
+const Call = dynamic(() => import("../components/CallNext"), {
   ssr: false,
 });
 

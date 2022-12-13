@@ -15,7 +15,8 @@ export const useCallLayout = (amount: number) => {
         columns = "repeat(2, 1fr)";
         break;
       }
-      case 3: {
+      case 3:
+      case 4: {
         columns = "repeat(2, 1fr)";
         rows = "repeat(2, 1fr)";
         break;

@@ -1,26 +1,53 @@
-import { useState } from "react";
-import { Box, Grid, HStack, Button, GridItem } from "@chakra-ui/react";
-import { useMount, useCallLayout } from "hooks";
+import {
+  Box,
+  Grid,
+  HStack,
+  Button,
+  GridItem,
+  Spinner,
+  Heading,
+} from "@chakra-ui/react";
+import { useCallLayout, useStream } from "hooks";
 import Stream from "components/Stream";
-import { MyStream } from "lib";
-
-const myStream = new MyStream();
 
 const CallNext = () => {
-  const [streamList, setStreamList] = useState<MediaStream[]>([]);
-
-  useMount(() => {
-    const init = async () => {
-      const _streamList = new Array(2).fill(null).map(() => {
-        return myStream.stream;
-      });
-      setStreamList(_streamList);
-    };
-
-    init();
-  });
+  const {
+    streamList,
+    callList,
+    isReady,
+    isCameraOn,
+    isMuted,
+    shareAudio,
+    toggleMic,
+    toggleCamera,
+  } = useStream();
+  const establishingPeerCount = Math.abs(
+    streamList.length - 1 - callList.length
+  );
 
   const { columns, rows } = useCallLayout(streamList.length);
+
+  if (!isReady)
+    return (
+      <Box
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+        w="100vw"
+        h="100vh"
+      >
+        <Box textAlign="center">
+          <Spinner size="xl" />
+          {callList.length > 0 ? (
+            <Heading mt="4">
+              Establishing Connection to {establishingPeerCount} Peer
+            </Heading>
+          ) : (
+            <Heading mt="4">Establishing Connection</Heading>
+          )}
+        </Box>
+      </Box>
+    );
 
   return (
     <Box
@@ -45,15 +72,22 @@ const CallNext = () => {
             key={idx}
             display={idx > 8 ? "none" : undefined}
           >
-            <Stream isMuted stream={item} />
+            <Stream isMuted={item.isSelf} stream={item.stream} />
           </GridItem>
         ))}
       </Grid>
       <Box w="full" pt="4">
         <HStack justify="center">
-          <Button onClick={myStream.toggleCamera}>Cam On</Button>
-          <Button>Mute</Button>
-          <Button>Share Audio</Button>
+          <Button
+            colorScheme={isCameraOn ? "red" : "green"}
+            onClick={toggleCamera}
+          >
+            {isCameraOn ? "Cam Off" : "Cam On"}
+          </Button>
+          <Button colorScheme={isMuted ? "green" : "red"} onClick={toggleMic}>
+            {isMuted ? "Unmute" : "Mute"}
+          </Button>
+          <Button onClick={shareAudio}>Share Audio</Button>
         </HStack>
       </Box>
     </Box>

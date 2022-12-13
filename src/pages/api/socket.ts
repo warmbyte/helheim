@@ -2,6 +2,8 @@ import { Server } from "socket.io";
 import type { NextApiRequest } from "next";
 
 const members: Set<string> = new Set();
+const memberMap: Map<string, { peerId: string }> = new Map();
+const peerToSocketMap: Map<string, string> = new Map();
 
 const SocketHandler = (_: NextApiRequest, res: any) => {
   if (res.socket?.server?.io) {
@@ -12,6 +14,25 @@ const SocketHandler = (_: NextApiRequest, res: any) => {
     res.socket.server.io = io;
 
     io.on("connection", (socket) => {
+      socket.on("join_call", (peerId: string) => {
+        memberMap.set(socket.id, { peerId });
+        peerToSocketMap.set(peerId, socket.id);
+
+        socket.emit(
+          "member_list",
+          Array.from(memberMap).map((item) => item[1].peerId)
+        );
+      });
+
+      socket.on("disconnect", () => {
+        const peerId = memberMap.get(socket.id)?.peerId;
+        if (peerId) {
+          socket.broadcast.emit("member_leave", peerId);
+          memberMap.delete(socket.id);
+          peerToSocketMap.delete(peerId);
+        }
+      });
+
       socket.on("join-room", (peerId) => {
         socket.emit("members", Array.from(members));
         (socket as any).peerId = peerId;
@@ -19,7 +40,6 @@ const SocketHandler = (_: NextApiRequest, res: any) => {
       });
 
       socket.on("disconnect", () => {
-        console.log("disconnected", (socket as any).peerId);
         members.delete((socket as any).peerId);
         socket.broadcast.emit("member-leave", (socket as any).peerId);
       });
