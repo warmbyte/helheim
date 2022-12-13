@@ -1,27 +1,18 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Box, Grid, HStack, Button, GridItem } from "@chakra-ui/react";
 import { useMount } from "hooks";
 import Stream from "components/Stream";
-import { createNilAudioTrack, createNilVideoTrack } from "lib";
+import { MyStream } from "lib";
 
-let myStream: MediaStream = null as any;
+const myStream = new MyStream();
 
 const CallNext = () => {
   const [streamList, setStreamList] = useState<MediaStream[]>([]);
 
   useMount(() => {
     const init = async () => {
-      const audio1 = createNilAudioTrack();
-      const audio2 = createNilAudioTrack();
-      const video = createNilVideoTrack();
-      myStream = new MediaStream([audio1, audio2, video]);
-
-      myStream.onaddtrack = (e) => {
-        console.log(e);
-      };
-
-      const _streamList = new Array(3).fill(null).map(() => {
-        return myStream;
+      const _streamList = new Array(6).fill(null).map(() => {
+        return myStream.stream;
       });
       setStreamList(_streamList);
     };
@@ -29,20 +20,35 @@ const CallNext = () => {
     init();
   });
 
-  const handleCam = async () => {
-    if (!myStream.getVideoTracks()[0].enabled) {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: true,
-      });
-      const [, video] = stream.getTracks();
-      myStream.removeTrack(myStream.getVideoTracks()[0]);
-      myStream.addTrack(video);
-    } else {
-      myStream.getVideoTracks()[0].enabled = false;
-      myStream.getVideoTracks()[0].stop();
+  const [columns, rows] = useMemo(() => {
+    let columns = "repeat(3, 1fr)";
+    let rows = "repeat(3, 1fr)";
+
+    switch (streamList.length) {
+      case 1: {
+        columns = rows = "1fr";
+        break;
+      }
+      case 2: {
+        columns = "1fr";
+        rows = "repeat(2, 1fr)";
+        break;
+      }
+      case 3: {
+        columns = "repeat(2, 1fr)";
+        rows = "repeat(2, 1fr)";
+        break;
+      }
+      case 5:
+      case 6: {
+        columns = "repeat(3, 1fr)";
+        rows = "repeat(2, 1fr)";
+        break;
+      }
     }
-  };
+
+    return [columns, rows];
+  }, [streamList]);
 
   return (
     <Box
@@ -57,11 +63,9 @@ const CallNext = () => {
       <Grid
         w="full"
         flex="1"
-        gridTemplateColumns={{ base: "repeat(1, 1fr)", lg: "repeat(3, 1fr)" }}
-        gridTemplateRows="repeat(3, 1fr)"
-        gridAutoRows={0}
+        gridTemplateColumns={columns}
+        gridTemplateRows={rows}
         gap={4}
-        overflowY="hidden"
       >
         {streamList.map((item, idx) => (
           <GridItem
@@ -75,7 +79,7 @@ const CallNext = () => {
       </Grid>
       <Box w="full" pt="4">
         <HStack justify="center">
-          <Button onClick={handleCam}>Cam On</Button>
+          <Button onClick={myStream.toggleCamera}>Cam On</Button>
           <Button>Mute</Button>
           <Button>Share Audio</Button>
         </HStack>
