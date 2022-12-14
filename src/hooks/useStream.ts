@@ -1,7 +1,10 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+import { useCallback } from "react";
 import create from "zustand";
 import Peer, { MediaConnection } from "peerjs";
 import { io } from "socket.io-client";
 import produce from "immer";
+import { debounce } from "lodash";
 import { MyStream } from "lib";
 
 interface IStore {
@@ -120,11 +123,14 @@ peer.on("open", init);
 export const useStream = () => {
   const state = useStore();
 
-  const toggleCamera = async () => {
-    await myStream.toggleCamera();
-    replaceTrack();
-    setState((prev) => ({ isCameraOn: !prev.isCameraOn }));
-  };
+  const toggleCamera = useCallback(
+    debounce(async () => {
+      await myStream.toggleCamera();
+      replaceTrack();
+      setState((prev) => ({ isCameraOn: !prev.isCameraOn }));
+    }, 500),
+    []
+  );
 
   const toggleMic = async () => {
     await myStream.toggleMic();
