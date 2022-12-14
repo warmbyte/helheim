@@ -74,7 +74,11 @@ const CallNext = () => {
             key={idx}
             display={idx > 8 ? "none" : undefined}
           >
-            <Stream isMuted={item.isSelf} stream={item.stream} />
+            <Stream
+              isCamEnabled={!item.isSelf ? false : isCameraOn}
+              isMuted={item.isSelf}
+              stream={item.stream}
+            />
           </GridItem>
         ))}
       </Grid>

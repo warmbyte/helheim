@@ -11,9 +11,10 @@ export const createNilAudioTrack = () => {
 
 export const createNilVideoTrack = () => {
   const canvas = document.createElement("canvas");
-  canvas.width = 300;
-  canvas.height = 300;
-  const stream = canvas.captureStream(30);
+  canvas.width = 640;
+  canvas.height = 480;
+  canvas.getContext("2d")!.fillRect(0, 0, 640, 480);
+  const stream = canvas.captureStream();
   stream.getVideoTracks()[0].enabled = false;
   return stream.getVideoTracks()[0];
 };
@@ -91,10 +92,10 @@ export class MyStream {
 
   static create = async () => {
     const stream = await navigator.mediaDevices.getUserMedia({
-      video: true,
+      video: false,
       audio: true,
     });
 
-    return new MyStream(stream.getAudioTracks()[0], stream.getVideoTracks()[0]);
+    return new MyStream(stream.getAudioTracks()[0], createNilVideoTrack());
   };
 }

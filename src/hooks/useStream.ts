@@ -17,7 +17,7 @@ const useStore = create<IStore>(() => ({
   streamList: [],
   callList: [],
   isScreenShared: false,
-  isCameraOn: true,
+  isCameraOn: false,
   isMuted: false,
   isReady: false,
 }));

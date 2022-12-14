@@ -3,6 +3,7 @@ import { Box } from "@chakra-ui/react";
 
 type Props = {
   stream: MediaStream;
+  isCamEnabled?: boolean;
   isMuted?: boolean;
 };
 
@@ -10,15 +11,28 @@ const Stream = (props: Props) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    if (videoRef.current && !videoRef.current.srcObject) {
-      videoRef.current.srcObject = props.stream;
+    const audio = (() => {
+      if (document.getElementById(`audio-${props.stream.id}`))
+        return document.getElementById(
+          `audio-${props.stream.id}`
+        )! as HTMLAudioElement;
+
+      const aud = document.createElement("audio");
+      aud.id = `audio-${props.stream.id}`;
+      return aud;
+    })();
+
+    if (videoRef.current) {
+      audio.autoplay = true;
+      audio.muted = !!props.isMuted;
+      audio.srcObject = new MediaStream(props.stream.getAudioTracks());
+      videoRef.current.srcObject = new MediaStream(
+        props.stream.getVideoTracks()
+      );
       videoRef.current.autoplay = true;
       videoRef.current.playsInline = true;
-      if (props.isMuted) {
-        videoRef.current.volume = 0;
-      }
     }
-  });
+  }, [props.stream, props.isMuted, props.isCamEnabled]);
 
   return (
     <Box
