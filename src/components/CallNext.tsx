@@ -8,6 +8,7 @@ import {
   Heading,
   IconButton,
   Tooltip,
+  Icon,
 } from "@chakra-ui/react";
 import {
   BsMicMute,
@@ -83,6 +84,17 @@ const CallNext = () => {
             key={idx}
             display={idx > 8 ? "none" : undefined}
           >
+            <Icon
+              as={BsMicMute}
+              color="red"
+              w={5}
+              h={5}
+              position="absolute"
+              zIndex={2}
+              display={isMuted ? "none" : "block"}
+              bottom="2rem"
+              right="2rem"
+            />
             <Stream isMuted={item.isSelf} stream={item.stream} />
           </GridItem>
         ))}
