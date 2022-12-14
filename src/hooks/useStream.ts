@@ -8,6 +8,7 @@ import { useMount } from "./useMount";
 interface IStore {
   streamList: { stream: MediaStream; peerId: string; isSelf?: boolean }[];
   callList: { call: MediaConnection; peerId: string }[];
+  isScreenShared: boolean;
   isCameraOn: boolean;
   isMuted: boolean;
   isReady: boolean;
@@ -16,6 +17,7 @@ interface IStore {
 const useStore = create<IStore>(() => ({
   streamList: [],
   callList: [],
+  isScreenShared: false,
   isCameraOn: false,
   isMuted: false,
   isReady: false,
@@ -49,21 +51,22 @@ const handleAddTrack = (peerId: string) => (e: RTCTrackEvent) => {
   setState(nextState);
 };
 
-peer.on("call", (call) => {
-  call.answer(myStream.stream);
-  call.peerConnection.ontrack = handleAddTrack(call.peer);
-  setState(
-    produce(getState(), (draft) => {
-      draft.callList.push({ peerId: call.peer, call });
-    })
-  );
-});
-
 const startCall = async (peerIdList: string[]) => {
   myStream = await MyStream.create();
   setState({
     streamList: [{ stream: myStream.stream, peerId: peer.id, isSelf: true }],
   });
+
+  peer.on("call", (call) => {
+    call.answer(myStream.stream);
+    call.peerConnection.ontrack = handleAddTrack(call.peer);
+    setState(
+      produce(getState(), (draft) => {
+        draft.callList.push({ peerId: call.peer, call });
+      })
+    );
+  });
+
   peerIdList = peerIdList.filter((item) => item !== peer.id);
   if (peerIdList.length === 0) setState({ isReady: true });
   peerIdList.forEach((peerId) => {
@@ -118,5 +121,16 @@ export const useStream = () => {
     replaceTrack();
   };
 
-  return { toggleCamera, toggleMic, shareAudio, ...state };
+  const toggleShareScreen = async () => {
+    const { isScreenShared } = getState();
+    if (isScreenShared) {
+      await myStream.stopShareScreen();
+    } else {
+      await myStream.startShareScreen();
+    }
+    replaceTrack();
+    setState({ isScreenShared: !isScreenShared });
+  };
+
+  return { toggleCamera, toggleMic, shareAudio, toggleShareScreen, ...state };
 };

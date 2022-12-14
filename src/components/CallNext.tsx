@@ -17,9 +17,11 @@ const CallNext = () => {
     isReady,
     isCameraOn,
     isMuted,
+    isScreenShared,
     shareAudio,
     toggleMic,
     toggleCamera,
+    toggleShareScreen,
   } = useStream();
   const establishingPeerCount = Math.abs(
     streamList.length - 1 - callList.length
@@ -88,6 +90,12 @@ const CallNext = () => {
             {isMuted ? "Unmute" : "Mute"}
           </Button>
           <Button onClick={shareAudio}>Share Audio</Button>
+          <Button
+            colorScheme={isScreenShared ? "red" : "green"}
+            onClick={toggleShareScreen}
+          >
+            {isScreenShared ? "Stop Share Screen" : "Share Screen"}
+          </Button>
         </HStack>
       </Box>
     </Box>
