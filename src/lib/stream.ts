@@ -91,10 +91,10 @@ export class MyStream {
 
   static create = async () => {
     const stream = await navigator.mediaDevices.getUserMedia({
-      video: true,
+      video: false,
       audio: true,
     });
 
-    return new MyStream(stream.getAudioTracks()[0], stream.getVideoTracks()[0]);
+    return new MyStream(stream.getAudioTracks()[0], createNilVideoTrack());
   };
 }
