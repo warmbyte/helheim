@@ -45,7 +45,7 @@ export class MyStream {
 
   toggleMic = async () => {
     this.stream.getAudioTracks()[0].enabled =
-      !this.stream.getAudioTracks()[1].enabled;
+      !this.stream.getAudioTracks()[0].enabled;
   };
 
   shareAudio = async () => {
