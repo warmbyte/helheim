@@ -37,9 +37,9 @@ export class MyStream {
       this.stream.addTrack(video);
     } else {
       this.stream.getVideoTracks()[0].enabled = false;
-      setImmediate(() => {
+      setTimeout(() => {
         this.stream.getVideoTracks()[0].stop();
-      });
+      }, 0);
     }
   };
 
