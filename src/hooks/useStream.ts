@@ -99,11 +99,10 @@ const init = async () => {
   socket.on("member_leave", handleMemberLeave);
 };
 
+peer.on("open", init);
+
 export const useStream = () => {
   const state = useStore();
-  useMount(() => {
-    peer.on("open", init);
-  });
 
   const toggleCamera = async () => {
     await myStream.toggleCamera();

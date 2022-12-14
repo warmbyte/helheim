@@ -66,8 +66,9 @@ export class MyStream {
     });
     userAudio.getAudioTracks()[0].enabled =
       this.stream.getAudioTracks()[0].enabled;
-    this.stream.removeTrack(this.stream.getAudioTracks()[0]);
-    this.stream.removeTrack(this.stream.getAudioTracks()[1]);
+    this.stream.getAudioTracks().forEach((track) => {
+      this.stream.removeTrack(track);
+    });
     this.stream.addTrack(userAudio.getAudioTracks()[0]);
     this.stream.addTrack(audioStream.getAudioTracks()[0]);
   };

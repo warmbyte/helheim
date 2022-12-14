@@ -27,9 +27,9 @@ const SocketHandler = (_: NextApiRequest, res: any) => {
       socket.on("disconnect", () => {
         const peerId = memberMap.get(socket.id)?.peerId;
         if (peerId) {
-          socket.broadcast.emit("member_leave", peerId);
           memberMap.delete(socket.id);
           peerToSocketMap.delete(peerId);
+          socket.broadcast.emit("member_leave", peerId);
         }
       });
 
