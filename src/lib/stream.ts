@@ -75,6 +75,9 @@ export class MyStream {
   startShareScreen = async () => {
     const stream = await navigator.mediaDevices.getDisplayMedia({
       audio: false,
+      video: {
+        frameRate: 60,
+      },
     });
     this.stream.removeTrack(this.stream.getVideoTracks()[0]);
     this.stream.addTrack(stream.getVideoTracks()[0]);
