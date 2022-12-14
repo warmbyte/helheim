@@ -39,7 +39,7 @@ export class MyStream {
       this.stream.getVideoTracks()[0].enabled = false;
       setTimeout(() => {
         this.stream.getVideoTracks()[0].stop();
-      }, 0);
+      }, 100);
     }
   };
 
