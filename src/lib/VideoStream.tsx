@@ -1,6 +1,5 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Box } from "@chakra-ui/react";
-import { useMount } from "react-use";
 
 export const VideoComponent = (props: {
   stream: MediaStream;
@@ -8,12 +7,12 @@ export const VideoComponent = (props: {
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  useMount(() => {
+  useEffect(() => {
     videoRef.current!.srcObject = props.stream;
     if (props.isMuted) {
       videoRef.current!.volume = 0;
     }
-  });
+  }, [props.stream, props.isMuted]);
 
   return (
     <Box
