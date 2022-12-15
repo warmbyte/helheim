@@ -61,9 +61,6 @@ const handleStream = (peerId: string) => (stream: MediaStream) => {
     } else {
       draft.streamList[index] = { peerId, stream: stream };
     }
-    if (draft.streamList.length >= 2 && draft.callList.length >= 1) {
-      draft.isReady = true;
-    }
   });
   setState(nextState);
 };
@@ -86,7 +83,7 @@ const startCall = async (peerIdList: string[]) => {
   });
 
   peerIdList = peerIdList.filter((item) => item !== peer.id);
-  if (peerIdList.length === 0) setState({ isReady: true });
+  setState({ isReady: true });
   peerIdList.forEach((peerId) => {
     const call = peer.call(peerId, myStream.stream);
     call.on("stream", handleStream(peerId));
