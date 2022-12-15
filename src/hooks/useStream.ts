@@ -5,7 +5,7 @@ import Peer, { MediaConnection } from "peerjs";
 import { io } from "socket.io-client";
 import produce from "immer";
 import { debounce } from "lodash";
-import { MyStream } from "lib";
+import { MyStream, EE } from "lib";
 
 interface IStore {
   streamList: { stream: MediaStream; peerId: string; isSelf?: boolean }[];
@@ -119,6 +119,10 @@ const init = async () => {
 };
 
 peer.on("open", init);
+EE.on("change_device", () => {
+  myStream.changeDevice();
+  replaceTrack();
+});
 
 export const useStream = () => {
   const state = useStore();

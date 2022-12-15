@@ -1,3 +1,5 @@
+import { getSetting } from "lib";
+
 export const createNilAudioTrack = () => {
   const ctx = new AudioContext();
   const oscillator = ctx.createOscillator();
@@ -61,9 +63,16 @@ export class MyStream {
         suppressLocalAudioPlayback: false,
       },
     });
+    const { audioInputDeviceId } = getSetting();
     const userAudio = await navigator.mediaDevices.getUserMedia({
       video: false,
-      audio: true,
+      audio: {
+        deviceId: audioInputDeviceId,
+        noiseSuppression: true,
+        echoCancellation: true,
+        autoGainControl: true,
+        suppressLocalAudioPlayback: true,
+      },
     });
     userAudio.getAudioTracks()[0].enabled =
       this.stream.getAudioTracks()[0].enabled;
@@ -90,10 +99,59 @@ export class MyStream {
     this.stream.addTrack(createNilVideoTrack());
   };
 
+  changeDevice = async () => {
+    try {
+      const videoTrack =
+        this.stream.getVideoTracks()[0] ?? createNilVideoTrack();
+      const [audioTrack, musicTrack] = this.stream.getAudioTracks();
+      const { audioInputDeviceId, videoInputDeviceId, audioOutputDeviceId } =
+        getSetting();
+
+      document.querySelectorAll("audio").forEach((audio) => {
+        if ((audio as any).setSinkId) {
+          (audio as any).setSinkId(audioOutputDeviceId);
+        }
+      });
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: videoTrack.enabled
+          ? {
+              deviceId: videoInputDeviceId,
+            }
+          : false,
+        audio: {
+          deviceId: audioInputDeviceId,
+          noiseSuppression: true,
+          echoCancellation: true,
+          autoGainControl: true,
+          suppressLocalAudioPlayback: true,
+        },
+      });
+      stream.getAudioTracks()[0].enabled = audioTrack.enabled;
+      const videoTrackReplacement = stream.getVideoTracks()[0] ?? videoTrack;
+
+      const newStream = new MediaStream([
+        stream.getAudioTracks()[0],
+        musicTrack,
+        videoTrackReplacement,
+      ]);
+      this.stream = newStream;
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   static create = async () => {
+    const { audioInputDeviceId } = getSetting();
     const stream = await navigator.mediaDevices.getUserMedia({
       video: false,
-      audio: true,
+      audio: {
+        deviceId: audioInputDeviceId,
+        noiseSuppression: true,
+        echoCancellation: true,
+        autoGainControl: true,
+        suppressLocalAudioPlayback: true,
+      },
     });
 
     return new MyStream(stream.getAudioTracks()[0], createNilVideoTrack());

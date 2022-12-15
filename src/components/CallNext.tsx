@@ -7,8 +7,10 @@ import {
   Spinner,
   Heading,
 } from "@chakra-ui/react";
+import { useModal } from "@ebay/nice-modal-react";
 import { useCallLayout, useStream } from "hooks";
 import Stream from "components/Stream";
+import { SettingModal } from "components/SettingModal";
 
 const CallNext = () => {
   const {
@@ -26,6 +28,7 @@ const CallNext = () => {
   const establishingPeerCount = Math.abs(
     streamList.length - 1 - callList.length
   );
+  const settingModal = useModal(SettingModal);
 
   const { columns, rows } = useCallLayout(streamList.length);
 
@@ -74,11 +77,7 @@ const CallNext = () => {
             key={idx}
             display={idx > 8 ? "none" : undefined}
           >
-            <Stream
-              isCamEnabled={!item.isSelf ? false : isCameraOn}
-              isMuted={item.isSelf}
-              stream={item.stream}
-            />
+            <Stream isMuted={item.isSelf} stream={item.stream} />
           </GridItem>
         ))}
       </Grid>
@@ -100,6 +99,7 @@ const CallNext = () => {
           >
             {isScreenShared ? "Stop Share Screen" : "Share Screen"}
           </Button>
+          <Button onClick={() => settingModal.show()}>Setting</Button>
         </HStack>
       </Box>
     </Box>
