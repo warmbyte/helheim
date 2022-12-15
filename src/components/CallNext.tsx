@@ -8,7 +8,6 @@ import {
   Heading,
   IconButton,
   Tooltip,
-  Icon,
 } from "@chakra-ui/react";
 import {
   BsMicMute,
@@ -16,6 +15,13 @@ import {
   BsCameraVideoOff,
   BsCameraVideo,
 } from "react-icons/bs";
+import {
+  MdMusicNote,
+  MdMusicOff,
+  MdScreenShare,
+  MdStopScreenShare,
+  MdOutlineSettings,
+} from "react-icons/md";
 import { useModal } from "@ebay/nice-modal-react";
 import { useCallLayout, useStream } from "hooks";
 import Stream from "components/Stream";
@@ -29,7 +35,8 @@ const CallNext = () => {
     isCameraOn,
     isMuted,
     isScreenShared,
-    shareAudio,
+    isAudioShared,
+    toggleAudio,
     toggleMic,
     toggleCamera,
     toggleShareScreen,
@@ -87,23 +94,12 @@ const CallNext = () => {
             key={idx}
             display={idx > 8 ? "none" : undefined}
           >
-            <Icon
-              as={BsMicMute}
-              color="red"
-              w={5}
-              h={5}
-              position="absolute"
-              zIndex={2}
-              display={isMuted ? "none" : "block"}
-              bottom="2rem"
-              right="2rem"
-            />
             <Stream isMuted={item.isSelf} stream={item.stream} />
           </GridItem>
         ))}
       </Grid>
       <Box w="full" pt="4">
-        <HStack justify="center">
+        <HStack justify="center" spacing="4">
           <Tooltip label={isCameraOn ? "Turn off camera" : "Turn on camera"}>
             <IconButton
               aria-label="camera-button"
@@ -114,24 +110,44 @@ const CallNext = () => {
             />
           </Tooltip>
 
-          <Tooltip label={isMuted ? "Mute" : "Unmute"}>
+          <Tooltip label={isMuted ? "Unmute" : "Mute"}>
             <IconButton
               aria-label="mic-button"
-              colorScheme={isMuted ? "green" : "red"}
-              icon={isMuted ? <BsMic /> : <BsMicMute />}
+              colorScheme={isMuted ? "red" : "green"}
+              icon={isMuted ? <BsMicMute /> : <BsMic />}
               onClick={toggleMic}
               rounded="full"
             />
           </Tooltip>
 
-          <Button onClick={shareAudio}>Share Audio</Button>
-          <Button
-            colorScheme={isScreenShared ? "red" : "green"}
-            onClick={toggleShareScreen}
+          <Tooltip label={isAudioShared ? "Stop Audio" : "Share Audio"}>
+            <IconButton
+              aria-label="audio-button"
+              colorScheme={isAudioShared ? "green" : "red"}
+              icon={isAudioShared ? <MdMusicOff /> : <MdMusicNote />}
+              onClick={toggleAudio}
+              rounded="full"
+            />
+          </Tooltip>
+          <Tooltip
+            label={isScreenShared ? "Stop Screen Share" : "Share Screen"}
           >
-            {isScreenShared ? "Stop Share Screen" : "Share Screen"}
-          </Button>
-          <Button onClick={() => settingModal.show()}>Setting</Button>
+            <IconButton
+              aria-label="screen-button"
+              colorScheme={isScreenShared ? "green" : "red"}
+              icon={isScreenShared ? <MdStopScreenShare /> : <MdScreenShare />}
+              onClick={toggleShareScreen}
+              rounded="full"
+            />
+          </Tooltip>
+          <Tooltip label="Settings">
+            <IconButton
+              aria-label="setting-button"
+              icon={<MdOutlineSettings />}
+              onClick={() => settingModal.show()}
+              rounded="full"
+            />
+          </Tooltip>
         </HStack>
       </Box>
     </Box>

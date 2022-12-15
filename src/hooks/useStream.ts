@@ -11,6 +11,7 @@ interface IStore {
   streamList: { stream: MediaStream; peerId: string; isSelf?: boolean }[];
   callList: { call: MediaConnection; peerId: string }[];
   isScreenShared: boolean;
+  isAudioShared: boolean;
   isCameraOn: boolean;
   isMuted: boolean;
   isReady: boolean;
@@ -23,6 +24,7 @@ const useStore = create<IStore>(() => ({
   isCameraOn: false,
   isMuted: false,
   isReady: false,
+  isAudioShared: false,
 }));
 const { setState, getState } = useStore;
 
@@ -138,9 +140,19 @@ export const useStream = () => {
     setState((prev) => ({ isMuted: !prev.isMuted }));
   };
 
-  const shareAudio = async () => {
-    await myStream.shareAudio();
-    replaceTrack();
+  const toggleAudio = async () => {
+    try {
+      if (getState().isAudioShared) {
+        await myStream.stopAudio();
+        setState({ isAudioShared: false });
+      } else {
+        await myStream.shareAudio(() => {
+          setState({ isAudioShared: false });
+        });
+        replaceTrack();
+        setState({ isAudioShared: true });
+      }
+    } catch (error) {}
   };
 
   const toggleShareScreen = async () => {
@@ -148,11 +160,13 @@ export const useStream = () => {
     if (isScreenShared) {
       await myStream.stopShareScreen();
     } else {
-      await myStream.startShareScreen();
+      await myStream.startShareScreen(() => {
+        setState({ isScreenShared: false });
+      });
     }
     replaceTrack();
     setState({ isScreenShared: !isScreenShared });
   };
 
-  return { toggleCamera, toggleMic, shareAudio, toggleShareScreen, ...state };
+  return { toggleCamera, toggleMic, toggleAudio, toggleShareScreen, ...state };
 };

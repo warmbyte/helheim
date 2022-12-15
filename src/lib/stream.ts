@@ -1,5 +1,8 @@
 import { getSetting } from "lib";
 
+let audioStream: MediaStream = null as any;
+let faceStream: MediaStream = null as any;
+
 export const createNilAudioTrack = () => {
   const ctx = new AudioContext();
   const oscillator = ctx.createOscillator();
@@ -51,8 +54,17 @@ export class MyStream {
       !this.stream.getAudioTracks()[0].enabled;
   };
 
-  shareAudio = async () => {
-    const audioStream = await navigator.mediaDevices.getDisplayMedia({
+  stopAudio = async () => {
+    if (audioStream) {
+      audioStream.getTracks().forEach((track) => {
+        track.stop();
+        audioStream.removeTrack(track);
+      });
+    }
+  };
+
+  shareAudio = async (cb: () => void) => {
+    audioStream = await navigator.mediaDevices.getDisplayMedia({
       audio: {
         sampleSize: 24,
         sampleRate: 48000,
@@ -63,6 +75,14 @@ export class MyStream {
         suppressLocalAudioPlayback: false,
       },
     });
+    if (!audioStream.getAudioTracks()[0]) {
+      audioStream.getTracks().forEach((track) => {
+        track.stop();
+        audioStream.removeTrack(track);
+      });
+      throw {};
+    }
+    audioStream.getAudioTracks()[0].onended = cb;
     const { audioInputDeviceId } = getSetting();
     const userAudio = await navigator.mediaDevices.getUserMedia({
       video: false,
@@ -83,20 +103,30 @@ export class MyStream {
     this.stream.addTrack(audioStream.getAudioTracks()[0]);
   };
 
-  startShareScreen = async () => {
-    const stream = await navigator.mediaDevices.getDisplayMedia({
+  startShareScreen = async (cb: () => void) => {
+    faceStream = await navigator.mediaDevices.getDisplayMedia({
       audio: false,
       video: {
         frameRate: 60,
       },
     });
+
+    faceStream.getTracks().forEach((track) => {
+      track.onended = cb;
+    });
+
     this.stream.removeTrack(this.stream.getVideoTracks()[0]);
-    this.stream.addTrack(stream.getVideoTracks()[0]);
+    this.stream.addTrack(faceStream.getVideoTracks()[0]);
   };
 
   stopShareScreen = async () => {
     this.stream.removeTrack(this.stream.getVideoTracks()[0]);
     this.stream.addTrack(createNilVideoTrack());
+
+    faceStream.getTracks().forEach((track) => {
+      track.stop();
+      faceStream.removeTrack(track);
+    });
   };
 
   changeDevice = async () => {

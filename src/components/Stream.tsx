@@ -14,11 +14,9 @@ const Stream = (props: Props) => {
 
   useEffect(() => {
     if (videoRef.current && canvasRef.current) {
-      // audio.srcObject = new MediaStream(props.stream.getAudioTracks());
-
       if (!canvasInitiated.current) {
         canvasInitiated.current = true;
-        props.stream.getAudioTracks().forEach((track, idx) => {
+        props.stream.getAudioTracks().forEach((track) => {
           const audio = document.createElement("audio");
           audio.autoplay = true;
           audio.srcObject = new MediaStream([track]);
@@ -42,7 +40,8 @@ const Stream = (props: Props) => {
       videoRef.current.autoplay = true;
       videoRef.current.playsInline = true;
     }
-  }, [props.stream, props.isMuted]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [...props.stream.getTracks(), props.isMuted]);
 
   return (
     <>
