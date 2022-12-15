@@ -1,9 +1,18 @@
 import { Server } from "socket.io";
 import type { NextApiRequest } from "next";
 
-const members: Set<string> = new Set();
 const memberMap: Map<string, { peerId: string }> = new Map();
 const peerToSocketMap: Map<string, string> = new Map();
+const timeoutMap: Map<string, NodeJS.Timeout> = new Map();
+
+const createTimeout = (peerId: string, cb: () => void) => {
+  if (timeoutMap.has(peerId)) {
+    clearTimeout(timeoutMap.get(peerId));
+  }
+
+  const timeout = setTimeout(cb, 1000 * 10);
+  timeoutMap.set(peerId, timeout);
+};
 
 const SocketHandler = (_: NextApiRequest, res: any) => {
   if (res.socket?.server?.io) {
@@ -18,34 +27,24 @@ const SocketHandler = (_: NextApiRequest, res: any) => {
         memberMap.set(socket.id, { peerId });
         peerToSocketMap.set(peerId, socket.id);
 
+        createTimeout(peerId, () => {
+          memberMap.delete(socket.id);
+          peerToSocketMap.delete(peerId);
+          socket.broadcast.emit("member_leave", peerId);
+        });
+
         socket.emit(
           "member_list",
           Array.from(memberMap).map((item) => item[1].peerId)
         );
       });
 
-      socket.on("disconnect", () => {
-        const peerId = memberMap.get(socket.id)?.peerId;
-        if (peerId) {
+      socket.on("ping", (peerId: string) => {
+        createTimeout(peerId, () => {
           memberMap.delete(socket.id);
           peerToSocketMap.delete(peerId);
           socket.broadcast.emit("member_leave", peerId);
-        }
-      });
-
-      socket.on("join-room", (peerId) => {
-        socket.emit("members", Array.from(members));
-        (socket as any).peerId = peerId;
-        members.add(peerId);
-      });
-
-      socket.on("disconnect", () => {
-        members.delete((socket as any).peerId);
-        socket.broadcast.emit("member-leave", (socket as any).peerId);
-      });
-
-      socket.on("input-change", (msg) => {
-        socket.broadcast.emit("update-input", msg);
+        });
       });
     });
   }

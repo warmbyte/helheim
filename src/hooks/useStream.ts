@@ -110,7 +110,15 @@ const handleMemberLeave = (peerId: string) => {
 
 const init = async () => {
   await fetch("/api/socket");
-  const socket = io({ autoConnect: true, transports: ["websocket"] });
+  const socket = io({
+    autoConnect: true,
+    reconnection: true,
+    transports: ["websocket"],
+  });
+
+  setInterval(() => {
+    socket.emit("ping", peer.id);
+  }, 1000 * 5);
 
   socket.emit("join_call", peer.id);
   socket.on("member_list", startCall);
