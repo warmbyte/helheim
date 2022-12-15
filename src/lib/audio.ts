@@ -43,3 +43,15 @@ export const createAudioVisualizer = (
 
   animate();
 };
+
+export const playCall = () => {
+  const audio = new Audio();
+  audio.src = "/call.wav";
+  audio.play();
+};
+
+export const playMessage = () => {
+  const audio = new Audio();
+  audio.src = "/message.wav";
+  audio.play();
+};

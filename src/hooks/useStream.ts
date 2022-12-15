@@ -5,7 +5,7 @@ import Peer, { DataConnection, MediaConnection } from "peerjs";
 import { io } from "socket.io-client";
 import produce from "immer";
 import { debounce } from "lodash";
-import { MyStream, EE, getRandomId } from "lib";
+import { MyStream, EE, getRandomId, playCall, playMessage } from "lib";
 
 interface IStore {
   streamList: { stream: MediaStream; peerId: string; isSelf?: boolean }[];
@@ -100,6 +100,7 @@ const handleStream = (peerId: string) => (stream: MediaStream) => {
 };
 
 const dataHandler = (peerId: string) => (data: any) => {
+  playMessage();
   if (data.type === "chat") {
     const nextState = produce(getState(), (draft) => {
       if (!draft.isShowChat) {
@@ -123,6 +124,7 @@ const startCall = async (peerIdList: string[]) => {
   });
 
   peer.on("call", (call) => {
+    playCall();
     call.answer(myStream.stream);
     call.peerConnection.ontrack = handleAddTrack(call.peer);
     call.on("stream", handleStream(call.peer));
