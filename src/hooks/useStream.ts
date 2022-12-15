@@ -61,7 +61,7 @@ const handleStream = (peerId: string) => (stream: MediaStream) => {
     } else {
       draft.streamList[index] = { peerId, stream: stream };
     }
-    if (draft.streamList.length - 1 > 1 && draft.callList.length >= 1) {
+    if (draft.streamList.length >= 2 && draft.callList.length >= 1) {
       draft.isReady = true;
     }
   });
