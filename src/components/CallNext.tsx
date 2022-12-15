@@ -6,7 +6,16 @@ import {
   GridItem,
   Spinner,
   Heading,
+  IconButton,
+  Tooltip,
+  Icon,
 } from "@chakra-ui/react";
+import {
+  BsMicMute,
+  BsMic,
+  BsCameraVideoOff,
+  BsCameraVideo,
+} from "react-icons/bs";
 import { useModal } from "@ebay/nice-modal-react";
 import { useCallLayout, useStream } from "hooks";
 import Stream from "components/Stream";
@@ -61,6 +70,7 @@ const CallNext = () => {
       flexDir="column"
       position="relative"
       overflow="hidden"
+      bg="gray.900"
       w="100vw"
       h="100vh"
     >
@@ -77,21 +87,43 @@ const CallNext = () => {
             key={idx}
             display={idx > 8 ? "none" : undefined}
           >
+            <Icon
+              as={BsMicMute}
+              color="red"
+              w={5}
+              h={5}
+              position="absolute"
+              zIndex={2}
+              display={isMuted ? "none" : "block"}
+              bottom="2rem"
+              right="2rem"
+            />
             <Stream isMuted={item.isSelf} stream={item.stream} />
           </GridItem>
         ))}
       </Grid>
       <Box w="full" pt="4">
         <HStack justify="center">
-          <Button
-            colorScheme={isCameraOn ? "red" : "green"}
-            onClick={toggleCamera}
-          >
-            {isCameraOn ? "Cam Off" : "Cam On"}
-          </Button>
-          <Button colorScheme={isMuted ? "green" : "red"} onClick={toggleMic}>
-            {isMuted ? "Unmute" : "Mute"}
-          </Button>
+          <Tooltip label={isCameraOn ? "Turn off camera" : "Turn on camera"}>
+            <IconButton
+              aria-label="camera-button"
+              rounded="full"
+              colorScheme={isCameraOn ? "green" : "red"}
+              icon={isCameraOn ? <BsCameraVideo /> : <BsCameraVideoOff />}
+              onClick={toggleCamera}
+            />
+          </Tooltip>
+
+          <Tooltip label={isMuted ? "Mute" : "Unmute"}>
+            <IconButton
+              aria-label="mic-button"
+              colorScheme={isMuted ? "green" : "red"}
+              icon={isMuted ? <BsMic /> : <BsMicMute />}
+              onClick={toggleMic}
+              rounded="full"
+            />
+          </Tooltip>
+
           <Button onClick={shareAudio}>Share Audio</Button>
           <Button
             colorScheme={isScreenShared ? "red" : "green"}
