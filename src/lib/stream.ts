@@ -1,6 +1,7 @@
-import { getSetting } from "lib";
+import { getSetting, EE } from "lib";
 
 let audioStream: MediaStream = null as any;
+let screenStream: MediaStream = null as any;
 let faceStream: MediaStream = null as any;
 
 export const createNilAudioTrack = () => {
@@ -32,20 +33,22 @@ export class MyStream {
     this.stream = new MediaStream([audio1, audio2, video]);
   }
 
-  toggleCamera = async () => {
-    if (!this.stream.getVideoTracks()[0].enabled) {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: true,
-      });
-      const [, video] = stream.getTracks();
-      this.stream.removeTrack(this.stream.getVideoTracks()[0]);
-      this.stream.addTrack(video);
-    } else {
-      this.stream.getVideoTracks()[0].stop();
-      this.stream.removeTrack(this.stream.getVideoTracks()[0]);
-      this.stream.addTrack(createNilVideoTrack());
-    }
+  startCamera = async (cb: () => void) => {
+    faceStream = await navigator.mediaDevices.getUserMedia({
+      video: true,
+      audio: false,
+    });
+    const [video] = faceStream.getTracks();
+    EE.on("camera_stop", cb);
+    this.stream.removeTrack(this.stream.getVideoTracks()[0]);
+    this.stream.addTrack(video);
+  };
+
+  stopCamera = async () => {
+    faceStream.getTracks().forEach((track) => {
+      track.stop();
+      faceStream.removeTrack(track);
+    });
   };
 
   toggleMic = async () => {
@@ -103,28 +106,35 @@ export class MyStream {
   };
 
   startShareScreen = async (cb: () => void) => {
-    faceStream = await navigator.mediaDevices.getDisplayMedia({
+    if (faceStream)
+      faceStream.getTracks().forEach((track) => {
+        track.stop();
+        faceStream.removeTrack(track);
+      });
+    EE.emit("camera_stop");
+
+    screenStream = await navigator.mediaDevices.getDisplayMedia({
       audio: false,
       video: {
         frameRate: 60,
       },
     });
 
-    faceStream.getTracks().forEach((track) => {
+    screenStream.getTracks().forEach((track) => {
       track.onended = cb;
     });
 
     this.stream.removeTrack(this.stream.getVideoTracks()[0]);
-    this.stream.addTrack(faceStream.getVideoTracks()[0]);
+    this.stream.addTrack(screenStream.getVideoTracks()[0]);
   };
 
   stopShareScreen = async () => {
     this.stream.removeTrack(this.stream.getVideoTracks()[0]);
     this.stream.addTrack(createNilVideoTrack());
 
-    faceStream.getTracks().forEach((track) => {
+    screenStream.getTracks().forEach((track) => {
       track.stop();
-      faceStream.removeTrack(track);
+      screenStream.removeTrack(track);
     });
   };
 

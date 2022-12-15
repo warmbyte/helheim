@@ -128,7 +128,13 @@ export const useStream = () => {
 
   const toggleCamera = useCallback(
     debounce(async () => {
-      await myStream.toggleCamera();
+      if (getState().isCameraOn) {
+        await myStream.stopCamera();
+      } else {
+        await myStream.startCamera(() => {
+          setState({ isCameraOn: false });
+        });
+      }
       replaceTrack();
       setState((prev) => ({ isCameraOn: !prev.isCameraOn }));
     }, 500),
