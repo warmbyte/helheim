@@ -1,6 +1,6 @@
 import { useRef, useEffect } from "react";
 import { Box } from "@chakra-ui/react";
-import { getSetting } from "lib";
+import { getSetting, createAudioVisualizer } from "lib";
 
 type Props = {
   stream: MediaStream;
@@ -9,31 +9,36 @@ type Props = {
 
 const Stream = (props: Props) => {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvasInitiated = useRef(false);
 
   useEffect(() => {
-    const audio = (() => {
-      if (document.getElementById(`audio-${props.stream.id}`))
-        return document.getElementById(
-          `audio-${props.stream.id}`
-        )! as HTMLAudioElement;
+    if (videoRef.current && canvasRef.current) {
+      // audio.srcObject = new MediaStream(props.stream.getAudioTracks());
 
-      const aud = document.createElement("audio");
-      aud.id = `audio-${props.stream.id}`;
-      return aud;
-    })();
+      if (!canvasInitiated.current) {
+        canvasInitiated.current = true;
+        props.stream.getAudioTracks().forEach((track, idx) => {
+          const audio = document.createElement("audio");
+          audio.autoplay = true;
+          audio.controls = true;
+          audio.srcObject = new MediaStream([track]);
+          audio.muted = !!props.isMuted;
+          const { audioOutputDeviceId } = getSetting();
+          if ((audio as any).setSinkId) {
+            (audio as any).setSinkId(audioOutputDeviceId);
+          }
+          document.body.appendChild(audio);
 
-    if (videoRef.current) {
-      audio.autoplay = true;
-      audio.muted = !!props.isMuted;
-      audio.srcObject = new MediaStream(props.stream.getAudioTracks());
-      document.body.appendChild(audio);
-
-      const { audioOutputDeviceId } = getSetting();
-      if ((audio as any).setSinkId) {
-        (audio as any).setSinkId(audioOutputDeviceId);
+          canvasRef.current!.width = videoRef.current!.clientWidth;
+          canvasRef.current!.height = videoRef.current!.clientHeight;
+          createAudioVisualizer(audio, canvasRef.current!);
+        });
       }
 
-      videoRef.current.srcObject = props.stream;
+      videoRef.current.srcObject = new MediaStream(
+        props.stream.getVideoTracks()
+      );
       videoRef.current.volume = 0;
       videoRef.current.autoplay = true;
       videoRef.current.playsInline = true;
@@ -41,19 +46,33 @@ const Stream = (props: Props) => {
   }, [props.stream, props.isMuted]);
 
   return (
-    <Box
-      ref={videoRef as any}
-      borderRadius="lg"
-      as="video"
-      position="absolute"
-      top="0"
-      left="0"
-      width="100%"
-      height="100%"
-      overflow="hidden"
-      bg="black"
-      objectFit="contain"
-    />
+    <>
+      <Box
+        ref={canvasRef as any}
+        zIndex={2}
+        as="canvas"
+        position="absolute"
+        top="0"
+        left="0"
+        width="100%"
+        height="100%"
+        overflow="hidden"
+        borderRadius="lg"
+      />
+      <Box
+        ref={videoRef as any}
+        borderRadius="lg"
+        as="video"
+        position="absolute"
+        top="0"
+        left="0"
+        width="100%"
+        height="100%"
+        overflow="hidden"
+        bg="black"
+        objectFit="contain"
+      />
+    </>
   );
 };
 
