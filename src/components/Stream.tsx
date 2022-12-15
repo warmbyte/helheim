@@ -21,7 +21,6 @@ const Stream = (props: Props) => {
         props.stream.getAudioTracks().forEach((track, idx) => {
           const audio = document.createElement("audio");
           audio.autoplay = true;
-          audio.controls = true;
           audio.srcObject = new MediaStream([track]);
           audio.muted = !!props.isMuted;
           const { audioOutputDeviceId } = getSetting();
