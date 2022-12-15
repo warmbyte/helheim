@@ -3,6 +3,7 @@ lockfileVersion: 5.4
 specifiers:
   '@babel/core': ^7.20.5
   '@chakra-ui/react': ^2.4.3
+  '@ebay/nice-modal-react': ^1.2.8
   '@emotion/react': ^11.10.5
   '@emotion/styled': ^11.10.5
   '@types/lodash': ^4.14.191
@@ -12,6 +13,7 @@ specifiers:
   '@types/uuid': ^9.0.0
   eslint: 8.29.0
   eslint-config-next: 13.0.6
+  eventemitter3: ^5.0.0
   framer-motion: ^7.6.19
   immer: ^9.0.16
   lodash: ^4.17.21
@@ -29,6 +31,7 @@ specifiers:
 
 dependencies:
   '@chakra-ui/react': 2.4.3_366jsnbj2fqgpp64v3qddukxli
+  '@ebay/nice-modal-react': 1.2.8_biqbaboplfbrettd7655fr4n2y
   '@emotion/react': 11.10.5_xl5my4wapvq2ctl7qwehtbgorq
   '@emotion/styled': 11.10.5_3djhvnr4jirfvebjqpipo7gthy
   '@types/node': 18.11.12
@@ -36,6 +39,7 @@ dependencies:
   '@types/react-dom': 18.0.9
   eslint: 8.29.0
   eslint-config-next: 13.0.6_ha6vam6werchizxrnqvarmz2zu
+  eventemitter3: 5.0.0
   framer-motion: 7.6.19_biqbaboplfbrettd7655fr4n2y
   immer: 9.0.16
   lodash: 4.17.21
@@ -1287,6 +1291,16 @@ packages:
     dependencies:
       '@chakra-ui/system': 2.3.4_dovxhg2tvkkxkdnqyoum6wzcxm
       react: 18.2.0
+    dev: false
+
+  /@ebay/nice-modal-react/1.2.8_biqbaboplfbrettd7655fr4n2y:
+    resolution: {integrity: sha512-5C+9/zWsaYeDMI3HLVIg2clQzVmhepxOGeVdAWOyww2GZJ4Cl3NgzPHyO70SIkG0a4aXvUruyDnPM+jx7DzSJg==}
+    peerDependencies:
+      react: '>16.8.0'
+      react-dom: '>16.8.0'
+    dependencies:
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
     dev: false
 
   /@emotion/babel-plugin/11.10.5_@babel+core@7.20.5:
@@ -2661,6 +2675,10 @@ packages:
 
   /eventemitter3/4.0.7:
     resolution: {integrity: sha512-8guHBZCwKnFhYdHr2ysuRWErTwhoN2X8XELRlrRwpmfeY2jjuUN4taQMsULKUVo1K4DvZl+0pgfyoysHxvmvEw==}
+    dev: false
+
+  /eventemitter3/5.0.0:
+    resolution: {integrity: sha512-riuVbElZZNXLeLEoprfNYoDSwTBRR44X3mnhdI1YcnENpWTCsTTVZ2zFuqQcpoyqPQIUXdiPEU0ECAq0KQRaHg==}
     dev: false
 
   /fast-deep-equal/3.1.3:

@@ -1,9 +1,11 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+import { useCallback } from "react";
 import create from "zustand";
 import Peer, { MediaConnection } from "peerjs";
 import { io } from "socket.io-client";
 import produce from "immer";
-import { MyStream } from "lib";
-import { useMount } from "./useMount";
+import { debounce } from "lodash";
+import { MyStream, EE } from "lib";
 
 interface IStore {
   streamList: { stream: MediaStream; peerId: string; isSelf?: boolean }[];
@@ -51,6 +53,21 @@ const handleAddTrack = (peerId: string) => (e: RTCTrackEvent) => {
   setState(nextState);
 };
 
+const handleStream = (peerId: string) => (stream: MediaStream) => {
+  const nextState = produce(getState(), (draft) => {
+    const index = draft.streamList.findIndex((item) => item.peerId === peerId);
+    if (index === -1) {
+      draft.streamList.push({ peerId, stream: stream });
+    } else {
+      draft.streamList[index] = { peerId, stream: stream };
+    }
+    if (draft.streamList.length - 1 > 1 && draft.callList.length >= 1) {
+      draft.isReady = true;
+    }
+  });
+  setState(nextState);
+};
+
 const startCall = async (peerIdList: string[]) => {
   myStream = await MyStream.create();
   setState({
@@ -60,6 +77,7 @@ const startCall = async (peerIdList: string[]) => {
   peer.on("call", (call) => {
     call.answer(myStream.stream);
     call.peerConnection.ontrack = handleAddTrack(call.peer);
+    call.on("stream", handleStream(call.peer));
     setState(
       produce(getState(), (draft) => {
         draft.callList.push({ peerId: call.peer, call });
@@ -71,6 +89,7 @@ const startCall = async (peerIdList: string[]) => {
   if (peerIdList.length === 0) setState({ isReady: true });
   peerIdList.forEach((peerId) => {
     const call = peer.call(peerId, myStream.stream);
+    call.on("stream", handleStream(peerId));
     call.peerConnection.ontrack = handleAddTrack(peerId);
 
     const nextState = produce(getState(), (draft) => {
@@ -100,15 +119,22 @@ const init = async () => {
 };
 
 peer.on("open", init);
+EE.on("change_device", () => {
+  myStream.changeDevice();
+  replaceTrack();
+});
 
 export const useStream = () => {
   const state = useStore();
 
-  const toggleCamera = async () => {
-    await myStream.toggleCamera();
-    replaceTrack();
-    setState((prev) => ({ isCameraOn: !prev.isCameraOn }));
-  };
+  const toggleCamera = useCallback(
+    debounce(async () => {
+      await myStream.toggleCamera();
+      replaceTrack();
+      setState((prev) => ({ isCameraOn: !prev.isCameraOn }));
+    }, 500),
+    []
+  );
 
   const toggleMic = async () => {
     await myStream.toggleMic();

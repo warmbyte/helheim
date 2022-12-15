@@ -1,5 +1,6 @@
 import { useRef, useEffect } from "react";
 import { Box } from "@chakra-ui/react";
+import { getSetting } from "lib";
 
 type Props = {
   stream: MediaStream;
@@ -10,15 +11,34 @@ const Stream = (props: Props) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    if (videoRef.current && !videoRef.current.srcObject) {
+    const audio = (() => {
+      if (document.getElementById(`audio-${props.stream.id}`))
+        return document.getElementById(
+          `audio-${props.stream.id}`
+        )! as HTMLAudioElement;
+
+      const aud = document.createElement("audio");
+      aud.id = `audio-${props.stream.id}`;
+      return aud;
+    })();
+
+    if (videoRef.current) {
+      audio.autoplay = true;
+      audio.muted = !!props.isMuted;
+      audio.srcObject = new MediaStream(props.stream.getAudioTracks());
+      document.body.appendChild(audio);
+
+      const { audioOutputDeviceId } = getSetting();
+      if ((audio as any).setSinkId) {
+        (audio as any).setSinkId(audioOutputDeviceId);
+      }
+
       videoRef.current.srcObject = props.stream;
+      videoRef.current.volume = 0;
       videoRef.current.autoplay = true;
       videoRef.current.playsInline = true;
-      if (props.isMuted) {
-        videoRef.current.volume = 0;
-      }
     }
-  });
+  }, [props.stream, props.isMuted]);
 
   return (
     <Box
