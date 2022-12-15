@@ -44,10 +44,13 @@ export class MyStream {
     this.stream.addTrack(video);
   };
 
-  stopCamera = async () => {
+  stopCamera = () => {
     faceStream.getTracks().forEach((track) => {
-      track.stop();
-      faceStream.removeTrack(track);
+      track.enabled = false;
+      setTimeout(() => {
+        track.stop();
+        faceStream.removeTrack(track);
+      }, 100);
     });
   };
 
