@@ -42,10 +42,9 @@ export class MyStream {
       this.stream.removeTrack(this.stream.getVideoTracks()[0]);
       this.stream.addTrack(video);
     } else {
-      this.stream.getVideoTracks()[0].enabled = false;
-      setTimeout(() => {
-        this.stream.getVideoTracks()[0].stop();
-      }, 100);
+      this.stream.getVideoTracks()[0].stop();
+      this.stream.removeTrack(this.stream.getVideoTracks()[0]);
+      this.stream.addTrack(createNilVideoTrack());
     }
   };
 

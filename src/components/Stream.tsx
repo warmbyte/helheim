@@ -16,21 +16,21 @@ const Stream = (props: Props) => {
     if (videoRef.current && canvasRef.current) {
       if (!canvasInitiated.current) {
         canvasInitiated.current = true;
-        props.stream.getAudioTracks().forEach((track) => {
-          const audio = document.createElement("audio");
-          audio.autoplay = true;
-          audio.srcObject = new MediaStream([track]);
-          audio.muted = !!props.isMuted;
-          const { audioOutputDeviceId } = getSetting();
-          if ((audio as any).setSinkId) {
-            (audio as any).setSinkId(audioOutputDeviceId);
-          }
-          document.body.appendChild(audio);
+        if (!props.isMuted)
+          props.stream.getAudioTracks().forEach((track) => {
+            const audio = document.createElement("audio");
+            audio.autoplay = true;
+            audio.srcObject = new MediaStream([track]);
+            const { audioOutputDeviceId } = getSetting();
+            if ((audio as any).setSinkId) {
+              (audio as any).setSinkId(audioOutputDeviceId);
+            }
+            document.body.appendChild(audio);
 
-          canvasRef.current!.width = videoRef.current!.clientWidth;
-          canvasRef.current!.height = videoRef.current!.clientHeight;
-          createAudioVisualizer(audio, canvasRef.current!);
-        });
+            canvasRef.current!.width = videoRef.current!.clientWidth;
+            canvasRef.current!.height = videoRef.current!.clientHeight;
+            createAudioVisualizer(audio, canvasRef.current!);
+          });
       }
 
       videoRef.current.srcObject = new MediaStream(
