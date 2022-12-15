@@ -1,9 +1,10 @@
 import { useRef, useEffect } from "react";
-import { Box } from "@chakra-ui/react";
-import { getSetting, createAudioVisualizer } from "lib";
+import { Box, Text } from "@chakra-ui/react";
+import { getSetting, createAudioVisualizer, getNameFromId } from "lib";
 
 type Props = {
   stream: MediaStream;
+  peerId: string;
   isMuted?: boolean;
 };
 
@@ -45,6 +46,17 @@ const Stream = (props: Props) => {
 
   return (
     <>
+      <Text
+        color="white"
+        fontWeight="bold"
+        textTransform="capitalize"
+        position="absolute"
+        zIndex="3"
+        top="4"
+        left="4"
+      >
+        {getNameFromId(props.peerId)}
+      </Text>
       <Box
         ref={canvasRef as any}
         zIndex={2}

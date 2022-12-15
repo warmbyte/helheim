@@ -1,15 +1,19 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useCallback } from "react";
 import create from "zustand";
-import Peer, { MediaConnection } from "peerjs";
+import Peer, { DataConnection, MediaConnection } from "peerjs";
 import { io } from "socket.io-client";
 import produce from "immer";
 import { debounce } from "lodash";
-import { MyStream, EE } from "lib";
+import { MyStream, EE, getRandomId } from "lib";
 
 interface IStore {
   streamList: { stream: MediaStream; peerId: string; isSelf?: boolean }[];
   callList: { call: MediaConnection; peerId: string }[];
+  connectionList: { connection: DataConnection; peerId: string }[];
+  chat: { message: string; peerId: string; isSelf: boolean }[];
+  unreadedChat: number;
+  isShowChat: boolean;
   isScreenShared: boolean;
   isAudioShared: boolean;
   isCameraOn: boolean;
@@ -17,19 +21,47 @@ interface IStore {
   isReady: boolean;
 }
 
-const useStore = create<IStore>(() => ({
+export const useStreamStore = create<IStore>(() => ({
   streamList: [],
   callList: [],
+  connectionList: [],
+  chat: [],
+  unreadedChat: 0,
+  isShowChat: false,
   isScreenShared: false,
   isCameraOn: false,
   isMuted: false,
   isReady: false,
   isAudioShared: false,
 }));
-const { setState, getState } = useStore;
+const { setState, getState } = useStreamStore;
 
 let myStream: MyStream = null as any;
-const peer = new Peer();
+const peer = new Peer(getRandomId());
+
+peer.on("connection", (connection) => {
+  connection.on("data", dataHandler(connection.peer));
+  setState(
+    produce(getState(), (draft) => {
+      draft.connectionList.push({ connection, peerId: connection.peer });
+    })
+  );
+});
+
+EE.on("input_chat", (message: string) => {
+  getState().connectionList.forEach(({ connection }) => {
+    connection.send({ type: "chat", message });
+  });
+
+  const nextState = produce(getState(), (draft) => {
+    draft.chat.push({
+      message: message as string,
+      peerId: peer.id,
+      isSelf: true,
+    });
+  });
+  setState(nextState);
+});
 
 const replaceTrack = () => {
   getState().callList.forEach(({ call }) => {
@@ -67,6 +99,23 @@ const handleStream = (peerId: string) => (stream: MediaStream) => {
   setState(nextState);
 };
 
+const dataHandler = (peerId: string) => (data: any) => {
+  if (data.type === "chat") {
+    const nextState = produce(getState(), (draft) => {
+      if (!draft.isShowChat) {
+        draft.unreadedChat++;
+      }
+
+      draft.chat.push({
+        message: data.message as string,
+        peerId,
+        isSelf: false,
+      });
+    });
+    setState(nextState);
+  }
+};
+
 const startCall = async (peerIdList: string[]) => {
   myStream = await MyStream.create();
   setState({
@@ -88,11 +137,14 @@ const startCall = async (peerIdList: string[]) => {
   setState({ isReady: true });
   peerIdList.forEach((peerId) => {
     const call = peer.call(peerId, myStream.stream);
+    const connection = peer.connect(peerId);
+    connection.on("data", dataHandler(peerId));
     call.on("stream", handleStream(peerId));
     call.peerConnection.ontrack = handleAddTrack(peerId);
 
     const nextState = produce(getState(), (draft) => {
       draft.callList.push({ call, peerId });
+      draft.connectionList.push({ connection, peerId });
     });
     setState(nextState);
   });
@@ -132,7 +184,7 @@ EE.on("change_device", () => {
 });
 
 export const useStream = () => {
-  const state = useStore();
+  const state = useStreamStore();
 
   const toggleCamera = useCallback(
     debounce(async () => {
