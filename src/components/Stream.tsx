@@ -68,6 +68,7 @@ const Stream = (props: Props) => {
         height="100%"
         overflow="hidden"
         borderRadius="lg"
+        pointerEvents="none"
       />
       <Box
         ref={videoRef as any}

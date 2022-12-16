@@ -1,11 +1,8 @@
-export const createAudioAnalyser = (audio: any) => {
+export const createAudioAnalyser = (audio: HTMLMediaElement) => {
   // @ts-ignore
   const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  let audioSource = null;
-  let analyser = null;
-
-  audioSource = audioCtx.createMediaElementSource(audio);
-  analyser = audioCtx.createAnalyser();
+  const analyser = audioCtx.createAnalyser();
+  const audioSource = audioCtx.createMediaElementSource(audio);
   audioSource.connect(analyser);
   analyser.connect(audioCtx.destination);
   return analyser;
