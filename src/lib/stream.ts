@@ -136,8 +136,11 @@ export class MyStream {
     this.stream.addTrack(createNilVideoTrack());
 
     screenStream.getTracks().forEach((track) => {
-      track.stop();
-      screenStream.removeTrack(track);
+      track.enabled = false;
+      setTimeout(() => {
+        track.stop();
+        screenStream.removeTrack(track);
+      }, 100);
     });
   };
 
