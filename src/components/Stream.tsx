@@ -81,7 +81,6 @@ const Stream = (props: Props) => {
         overflow="hidden"
         bg="black"
         objectFit="contain"
-        transform="scaleX(-1)"
       />
     </>
   );
