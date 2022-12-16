@@ -17,8 +17,10 @@ const Stream = (props: Props) => {
     if (videoRef.current && canvasRef.current) {
       if (!canvasInitiated.current) {
         canvasInitiated.current = true;
-        if (!props.isMuted)
-          props.stream.getAudioTracks().forEach((track) => {
+        if (!props.isMuted) {
+          const tracks = props.stream.getAudioTracks();
+          createAudioVisualizer(new MediaStream(tracks), canvasRef.current!);
+          tracks.forEach((track) => {
             const audio = document.createElement("audio");
             audio.autoplay = true;
             audio.srcObject = new MediaStream([track]);
@@ -30,8 +32,8 @@ const Stream = (props: Props) => {
 
             canvasRef.current!.width = videoRef.current!.clientWidth;
             canvasRef.current!.height = videoRef.current!.clientHeight;
-            createAudioVisualizer(audio, canvasRef.current!);
           });
+        }
       }
 
       videoRef.current.srcObject = new MediaStream(
