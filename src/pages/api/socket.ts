@@ -1,11 +1,14 @@
 import { Server } from "socket.io";
 import type { NextApiRequest } from "next";
 
-const memberMap: Map<string, { peerId: string }> = new Map();
-const peerToSocketMap: Map<string, string> = new Map();
-const timeoutMap: Map<string, NodeJS.Timeout> = new Map();
+type MemberMap = Map<string, { peerId: string }>;
+type PeerToSocketMap = Map<string, string>;
+type TimeoutMap = Map<string, NodeJS.Timeout>;
+const roomMap: Map<string, [MemberMap, PeerToSocketMap, TimeoutMap]> =
+  new Map();
 
-const createTimeout = (peerId: string, cb: () => void) => {
+const createTimeout = (room: string, peerId: string, cb: () => void) => {
+  const [, , timeoutMap] = roomMap.get(room)!;
   if (timeoutMap.has(peerId)) {
     clearTimeout(timeoutMap.get(peerId));
   }
@@ -23,29 +26,41 @@ const SocketHandler = (_: NextApiRequest, res: any) => {
     res.socket.server.io = io;
 
     io.on("connection", (socket) => {
-      socket.on("join_call", (peerId: string) => {
-        memberMap.set(socket.id, { peerId });
-        peerToSocketMap.set(peerId, socket.id);
+      socket.on(
+        "join_call",
+        ({ peerId, room }: { peerId: string; room: string }) => {
+          if (!roomMap.get(room)) {
+            roomMap.set(room, [new Map(), new Map(), new Map()]);
+          }
+          const [memberMap, peerToSocketMap] = roomMap.get(room)!;
+          socket.join(room);
+          memberMap.set(socket.id, { peerId });
+          peerToSocketMap.set(peerId, socket.id);
 
-        createTimeout(peerId, () => {
-          memberMap.delete(socket.id);
-          peerToSocketMap.delete(peerId);
-          socket.broadcast.emit("member_leave", peerId);
-        });
+          createTimeout(room, peerId, () => {
+            memberMap.delete(socket.id);
+            peerToSocketMap.delete(peerId);
+            socket.broadcast.to(room).emit("member_leave", peerId);
+          });
 
-        socket.emit(
-          "member_list",
-          Array.from(memberMap).map((item) => item[1].peerId)
-        );
-      });
+          socket.emit(
+            "member_list",
+            Array.from(memberMap).map((item) => item[1].peerId)
+          );
+        }
+      );
 
-      socket.on("ping", (peerId: string) => {
-        createTimeout(peerId, () => {
-          memberMap.delete(socket.id);
-          peerToSocketMap.delete(peerId);
-          socket.broadcast.emit("member_leave", peerId);
-        });
-      });
+      socket.on(
+        "ping",
+        ({ peerId, room }: { peerId: string; room: string }) => {
+          const [memberMap, peerToSocketMap] = roomMap.get(room)!;
+          createTimeout(room, peerId, () => {
+            memberMap.delete(socket.id);
+            peerToSocketMap.delete(peerId);
+            socket.broadcast.to(room).emit("member_leave", peerId);
+          });
+        }
+      );
     });
   }
   res.end();

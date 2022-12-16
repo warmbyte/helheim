@@ -5,6 +5,7 @@ import Peer, { DataConnection, MediaConnection } from "peerjs";
 import { io } from "socket.io-client";
 import produce from "immer";
 import { debounce } from "lodash";
+import { useMount } from "hooks";
 import { MyStream, EE, getRandomId, playCall, playMessage } from "lib";
 
 interface IStore {
@@ -162,7 +163,7 @@ const handleMemberLeave = (peerId: string) => {
   setState(nextState);
 };
 
-const init = async () => {
+const init = async (room: string) => {
   await fetch("/api/socket");
   const socket = io({
     autoConnect: true,
@@ -171,22 +172,26 @@ const init = async () => {
   });
 
   setInterval(() => {
-    socket.emit("ping", peer.id);
+    socket.emit("ping", { peerId: peer.id, room });
   }, 1000 * 5);
 
-  socket.emit("join_call", peer.id);
+  socket.emit("join_call", { peerId: peer.id, room });
   socket.on("member_list", startCall);
   socket.on("member_leave", handleMemberLeave);
 };
 
-peer.on("open", init);
 EE.on("change_device", () => {
   myStream.changeDevice();
   replaceTrack();
 });
 
-export const useStream = () => {
+export const useStream = (room: string) => {
   const state = useStreamStore();
+  useMount(() => {
+    peer.on("open", () => {
+      init(room);
+    });
+  });
 
   const toggleCamera = useCallback(
     debounce(async () => {

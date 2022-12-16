@@ -30,7 +30,7 @@ import Stream from "components/Stream";
 import { SettingModal } from "components/SettingModal";
 import Chat from "components/Chat";
 
-const CallNext = () => {
+const CallNext = (props: { room: string }) => {
   const {
     streamList,
     callList,
@@ -45,7 +45,7 @@ const CallNext = () => {
     toggleMic,
     toggleCamera,
     toggleShareScreen,
-  } = useStream();
+  } = useStream(props.room);
   const establishingPeerCount = Math.abs(
     streamList.length - 1 - callList.length
   );
