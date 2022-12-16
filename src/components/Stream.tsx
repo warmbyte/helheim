@@ -11,6 +11,7 @@ type Props = {
 const Stream = (props: Props) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvas2Ref = useRef<HTMLCanvasElement>(null);
   const canvasInitiated = useRef(false);
 
   useEffect(() => {
@@ -19,19 +20,26 @@ const Stream = (props: Props) => {
         canvasInitiated.current = true;
         if (!props.isMuted) {
           const tracks = props.stream.getAudioTracks();
-          createAudioVisualizer(new MediaStream(tracks), canvasRef.current!);
-          tracks.forEach((track) => {
+          tracks.forEach((track, idx) => {
             const audio = document.createElement("audio");
             audio.autoplay = true;
-            audio.srcObject = new MediaStream([track]);
+            const stream = new MediaStream([track]);
+            audio.srcObject = stream;
             const { audioOutputDeviceId } = getSetting();
             if ((audio as any).setSinkId) {
               (audio as any).setSinkId(audioOutputDeviceId);
+            }
+            if (idx === 0) {
+              createAudioVisualizer(stream, canvasRef.current!);
+            } else {
+              createAudioVisualizer(stream, canvas2Ref.current!);
             }
             document.body.appendChild(audio);
 
             canvasRef.current!.width = videoRef.current!.clientWidth;
             canvasRef.current!.height = videoRef.current!.clientHeight;
+            canvas2Ref.current!.width = videoRef.current!.clientWidth;
+            canvas2Ref.current!.height = videoRef.current!.clientHeight;
           });
         }
       }
@@ -61,6 +69,19 @@ const Stream = (props: Props) => {
       </Text>
       <Box
         ref={canvasRef as any}
+        zIndex={2}
+        as="canvas"
+        position="absolute"
+        top="0"
+        left="0"
+        width="100%"
+        height="100%"
+        overflow="hidden"
+        borderRadius="lg"
+        pointerEvents="none"
+      />
+      <Box
+        ref={canvas2Ref as any}
         zIndex={2}
         as="canvas"
         position="absolute"

@@ -13,7 +13,7 @@ export const createAudioVisualizer = (
   canvas: HTMLCanvasElement
 ) => {
   const analyser = createAudioAnalyser(audio);
-  analyser.fftSize = 64;
+  analyser.fftSize = 1024;
   const bufferLength = analyser.frequencyBinCount;
   const dataArray = new Uint8Array(bufferLength);
   const barWidth = canvas.width / bufferLength;
