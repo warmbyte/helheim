@@ -187,18 +187,22 @@ export class MyStream {
   };
 
   static create = async () => {
-    const { audioInputDeviceId } = getSetting();
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: false,
-      audio: {
-        deviceId: audioInputDeviceId,
-        noiseSuppression: true,
-        echoCancellation: true,
-        autoGainControl: true,
-        suppressLocalAudioPlayback: true,
-      },
-    });
+    try {
+      const { audioInputDeviceId } = getSetting();
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: false,
+        audio: {
+          deviceId: audioInputDeviceId,
+          noiseSuppression: true,
+          echoCancellation: true,
+          autoGainControl: true,
+          suppressLocalAudioPlayback: true,
+        },
+      });
 
-    return new MyStream(stream.getAudioTracks()[0], createNilVideoTrack());
+      return new MyStream(stream.getAudioTracks()[0], createNilVideoTrack());
+    } catch (error) {
+      return new MyStream(createNilAudioTrack(), createNilVideoTrack());
+    }
   };
 }
