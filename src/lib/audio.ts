@@ -1,19 +1,19 @@
-export const createAudioAnalyser = (audio: HTMLMediaElement) => {
-  // @ts-ignore
-  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+export const createAudioAnalyser = (audio: MediaStream) => {
+  const audioCtx = new window.AudioContext({ sampleRate: 48000 });
   const analyser = audioCtx.createAnalyser();
-  const audioSource = audioCtx.createMediaElementSource(audio);
+  const audioSource = audioCtx.createMediaStreamSource(audio);
   audioSource.connect(analyser);
   analyser.connect(audioCtx.destination);
+
   return analyser;
 };
 
 export const createAudioVisualizer = (
-  audio: HTMLAudioElement,
+  audio: MediaStream,
   canvas: HTMLCanvasElement
 ) => {
   const analyser = createAudioAnalyser(audio);
-  analyser.fftSize = 1024;
+  analyser.fftSize = 64;
   const bufferLength = analyser.frequencyBinCount;
   const dataArray = new Uint8Array(bufferLength);
   const barWidth = canvas.width / bufferLength;
