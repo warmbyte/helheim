@@ -17,6 +17,7 @@ export const setSetting = (setting: {
   audioInputDeviceId?: string;
   audioOutputDeviceId?: string;
   videoInputDeviceId?: string;
+  preferredName?: string;
 }) => {
   try {
     if (setting.audioInputDeviceId)
@@ -25,7 +26,11 @@ export const setSetting = (setting: {
       localStorage.setItem("audioOutputDeviceId", setting.audioOutputDeviceId);
     if (setting.videoInputDeviceId)
       localStorage.setItem("videoInputDeviceId", setting.videoInputDeviceId);
-  } catch (error) {}
+    if (setting.preferredName)
+      localStorage.setItem("preferredName", setting.preferredName);
+    else
+      localStorage.removeItem("preferredName");
+  } catch (error) { }
 };
 
 export const getSetting = () => {
@@ -37,12 +42,15 @@ export const getSetting = () => {
         localStorage.getItem("audioOutputDeviceId") ?? undefined,
       videoInputDeviceId:
         localStorage.getItem("videoInputDeviceId") ?? undefined,
+      preferredName:
+        localStorage.getItem("preferredName") ?? undefined,
     };
   } catch (error) {
     return {
       audioInputDeviceId: undefined,
       audioOutputDeviceId: undefined,
       videoInputDeviceId: undefined,
+      preferredName: undefined,
     };
   }
 };
