@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, MouseEventHandler } from "react";
 import { Box, Text } from "@chakra-ui/react";
 import { getSetting, createAudioVisualizer, getNameFromId } from "lib";
 
@@ -13,6 +13,12 @@ const Stream = (props: Props) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const canvas2Ref = useRef<HTMLCanvasElement>(null);
   const canvasInitiated = useRef(false);
+
+  const handleDoubleClick: MouseEventHandler<HTMLInputElement> = (e) => {
+    if (videoRef.current && canvasRef.current) {
+      videoRef.current.requestFullscreen();
+    }
+  };
 
   useEffect(() => {
     if (videoRef.current && canvasRef.current) {
@@ -55,7 +61,7 @@ const Stream = (props: Props) => {
   }, [...props.stream.getTracks(), props.isMuted]);
 
   return (
-    <>
+    <div onDoubleClick={handleDoubleClick}>
       <Text
         color="white"
         fontWeight="bold"
@@ -106,7 +112,7 @@ const Stream = (props: Props) => {
         bg="black"
         objectFit="contain"
       />
-    </>
+    </div>
   );
 };
 
