@@ -1,9 +1,9 @@
 import { KeyboardEventHandler, useRef } from "react";
-import { Box, Stack, Input, Text } from "@chakra-ui/react";
+import { Box, Stack, Input, Text, Button } from "@chakra-ui/react";
 import { useStreamStore } from "hooks";
 import { EE, getNameFromId } from "lib";
 
-const Chat = () => {
+const Chat = ({ toggleChat }: { toggleChat?: () => void }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const { chat } = useStreamStore();
 
@@ -16,6 +16,12 @@ const Chat = () => {
 
   return (
     <Box display="flex" flexDirection="column" w="320px" h="100vh">
+      {toggleChat && <Box p="4" display="flex" alignItems="center">
+        <Text fontSize="sm" fontWeight="bold" flexGrow={1} />
+        <Button onClick={toggleChat} size='xs'>
+          Close
+        </Button>
+      </Box>}
       <Stack py="2" px="4" flex="1" overflowY="scroll">
         {chat.map((item, idx) => (
           <Box key={idx}>

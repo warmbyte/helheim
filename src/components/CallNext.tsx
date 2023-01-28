@@ -29,6 +29,8 @@ import { useCallLayout, useStream, useStreamStore } from "hooks";
 import Stream from "components/Stream";
 import { SettingModal } from "components/SettingModal";
 import Chat from "components/Chat";
+import { useRef, useState } from "react";
+import { useEffect } from "react";
 
 const CallNext = (props: { room: string }) => {
   const {
@@ -51,7 +53,32 @@ const CallNext = (props: { room: string }) => {
   );
   const settingModal = useModal(SettingModal);
 
-  const { columns, rows } = useCallLayout(streamList.length);
+  const gridRef = useRef<HTMLDivElement>(null);
+  const [dimensions, setDimensions] = useState({
+    height: window.innerHeight - 100,
+    width: window.innerWidth
+  })
+  const layouts = useCallLayout(streamList.length, dimensions);
+  const crammed = dimensions.width < 320;
+
+  function handleResize() {
+    setDimensions({
+      height: gridRef.current?.clientHeight || window.innerHeight,
+      width: gridRef.current?.clientWidth || window.innerWidth
+    })
+    console.log({
+      height: gridRef.current?.clientHeight || window.innerHeight,
+      width: gridRef.current?.clientWidth || window.innerWidth
+    })
+  }
+  useEffect(() => {
+
+    if (gridRef.current) {
+      window.addEventListener('resize', handleResize)
+      handleResize();
+    }
+    return () => window.removeEventListener('resize', handleResize)
+  }, [setDimensions, gridRef.current])
 
   const toggleChat = () => {
     if (!isShowChat) {
@@ -59,6 +86,7 @@ const CallNext = (props: { room: string }) => {
     } else {
       useStreamStore.setState({ isShowChat: false });
     }
+    setTimeout(handleResize, 10);
   };
 
   if (!isReady)
@@ -87,7 +115,7 @@ const CallNext = (props: { room: string }) => {
     <Flex flexDirection="row">
       <Box
         p="4"
-        display="flex"
+        display={"flex"}
         flexDir="column"
         position="relative"
         overflow="hidden"
@@ -95,30 +123,41 @@ const CallNext = (props: { room: string }) => {
         flex="1"
         h="100vh"
       >
-        <Grid
+        <Box
+          display="flex"
+          ref={gridRef}
           w="full"
+          h="calc(100vh - var(--chakra-sizes-20))"
           flex="1"
-          gridTemplateColumns={columns}
-          gridTemplateRows={rows}
-          gap={4}
+          gap={0}
+          position="relative"
         >
           {streamList.map((item, idx) => (
-            <GridItem
-              position="relative"
-              key={idx}
-              display={idx > 8 ? "none" : undefined}
+            <Box
+              key={item.peerId}
+              padding={2}
+              position="absolute"
+              {...layouts[idx]}
             >
-              <Stream
-                peerId={item.peerId}
-                isMuted={item.isSelf}
-                stream={item.stream}
-              />
-            </GridItem>
+              <Box
+                position="relative"
+                w="full"
+                h="full"
+              >
+
+                <Stream
+                  peerId={item.peerId}
+                  isMuted={item.isSelf}
+                  stream={item.stream}
+                />
+              </Box>
+
+            </Box>
           ))}
-        </Grid>
-        <Box display="flex" flexDirection="row" w="full" pt="4">
+        </Box>
+        <Box display="flex" flexDirection="row" w="full" p="4">
           <HStack flex="1" />
-          <HStack flex="1" justify="center" spacing="4">
+          <HStack flex="1" justify="center" spacing={crammed ? "0" : "4"}>
             <Tooltip label={isCameraOn ? "Turn off camera" : "Turn on camera"}>
               <IconButton
                 aria-label="camera-button"
@@ -203,7 +242,7 @@ const CallNext = (props: { room: string }) => {
           </HStack>
         </Box>
       </Box>
-      {isShowChat ? <Chat /> : null}
+      {isShowChat ? <Chat toggleChat={crammed ? toggleChat : undefined} /> : null}
     </Flex>
   );
 };
