@@ -8,10 +8,13 @@ import { v4 } from "uuid";
 import { lowerCase } from "lodash";
 
 export const getRandomId = () => {
-  const randomName: string = uniqueNamesGenerator({
-    dictionaries: [adjectives, colors, animals],
-  });
-  return v4() + "-" + randomName;
+  let name = localStorage.getItem("preferredName");
+  if (!name) {
+    name = uniqueNamesGenerator({
+      dictionaries: [adjectives, colors, animals],
+    });
+  }
+  return v4() + "-" + name;
 };
 
 export const getNameFromId = (id: string) => {

@@ -13,6 +13,8 @@ import {
   FormControl,
   FormLabel,
   Stack,
+  Input,
+  FormHelperText,
 } from "@chakra-ui/react";
 import {
   getAudioInputDeviceList,
@@ -33,6 +35,7 @@ export const SettingModal = create(() => {
     audioInputDeviceId?: string;
     audioOutputDeviceId?: string;
     videoInputDeviceId?: string;
+    preferredName?: string;
   }>(getSetting());
 
   useMount(() => {
@@ -108,6 +111,20 @@ export const SettingModal = create(() => {
                   </option>
                 ))}
               </Select>
+            </FormControl>
+            <FormControl>
+              <FormLabel>Preferred Name</FormLabel>
+              <Input
+                value={state.preferredName}
+                placeholder="Leave blank to generate a random name"
+                onChange={(e) => {
+                  setState((prev) => ({
+                    ...prev,
+                    preferredName: e.target.value,
+                  }));
+                }}
+              />
+              <FormHelperText>Name changes requires rejoin</FormHelperText>
             </FormControl>
           </Stack>
         </ModalBody>
