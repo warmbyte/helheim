@@ -35,11 +35,11 @@ const Stream = (props: Props) => {
             if ((audio as any).setSinkId) {
               (audio as any).setSinkId(audioOutputDeviceId);
             }
-            if (idx === 0) {
-              createAudioVisualizer(stream, canvasRef.current!);
-            } else {
-              createAudioVisualizer(stream, canvas2Ref.current!);
-            }
+            // if (idx === 0) {
+            //   createAudioVisualizer(stream, canvasRef.current!);
+            // } else {
+            //   createAudioVisualizer(stream, canvas2Ref.current!);
+            // }
             document.body.appendChild(audio);
 
             canvasRef.current!.width = videoRef.current!.clientWidth;
