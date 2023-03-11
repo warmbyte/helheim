@@ -21,36 +21,36 @@ const Chat = ({ toggleChat }: { toggleChat?: () => void }) => {
   }, [chat]);
 
   return (
-    <Box display='flex' flexDirection='column' w='320px' h='100vh'>
+    <Box display="flex" flexDirection="column" w="320px" h="100vh">
       {toggleChat && (
-        <Box p='4' display='flex' alignItems='center'>
-          <Text fontSize='sm' fontWeight='bold' flexGrow={1} />
-          <Button onClick={toggleChat} size='xs'>
+        <Box p="4" display="flex" alignItems="center">
+          <Text fontSize="sm" fontWeight="bold" flexGrow={1} />
+          <Button onClick={toggleChat} size="xs">
             Close
           </Button>
         </Box>
       )}
-      <Stack py='2' px='4' flex='1' overflowY='scroll'>
+      <Stack py="2" px="4" flex="1" overflowY="scroll">
         {chat.map((item, idx) => (
           <Box key={idx}>
             <Text
               color={item.isSelf ? 'red.500' : 'gray.500'}
-              textTransform='capitalize'
-              fontSize='xs'
-              fontWeight='bold'
+              textTransform="capitalize"
+              fontSize="xs"
+              fontWeight="bold"
             >
               {item.isSelf ? 'Me' : getNameFromId(item.peerId)}
             </Text>
-            <Text fontSize='sm'>{item.message}</Text>
+            <Text fontSize="sm">{item.message}</Text>
           </Box>
         ))}
         <Box ref={scrollRef}></Box>
       </Stack>
-      <Box p='4'>
+      <Box p="4">
         <Input
           ref={inputRef}
           onKeyDown={handleSendMessage}
-          placeholder='Enter your message'
+          placeholder="Enter your message"
         />
       </Box>
     </Box>
